@@ -1,0 +1,55 @@
+version: '2.1'
+
+services:
+  2110526_zoo1:
+    image: zookeeper:3.4.9
+    hostname: 2110526_zoo1
+    container_name: 2110526_zoo1
+    ports:
+      - "2850:2181"    # aqui
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_PORT: 2850   # aqui
+      ZOO_SERVERS: server.1=2110526_zoo1:2888:3888
+    volumes:
+      - ./zk-single-kafka-single/2110526_zoo1/data:/data
+      - ./zk-single-kafka-single/2110526_zoo1/datalog:/datalog
+
+  2110526_kafka1:
+    image: confluentinc/cp-kafka:5.3.0
+    hostname: 2110526_kafka1
+    container_name: 2110526_kafka1
+    ports:
+      - "2851:9092"    # aqui
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://2110526_kafka1:2851,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:2852 # aqui
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "2110526_zoo1:2850"   # aqui
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - ./zk-single-kafka-single/2110526_kafka1/data:/var/lib/kafka/data
+    depends_on:
+      - 2110526_zoo1
+
+  ric-gateway:
+    image: registry.gitlab.com/lac-puc/context-net-kafka-core/gwlocal6:latest
+    container_name: ric-gw
+    ports:
+      - "2889:19000/udp"    # aqui
+    environment:
+      gw.port: "19000"
+      gw.consumer.topics: GroupAdvertisement,PrivateMessageTopic,GroupMessageTopic,UniCast,PingConfig
+      gw.consumer.auto.offset.reset: "latest"
+      gw.consumer.bootstrap.servers: "2110526_kafka1:2851"
+      gw.consumer.group.id: "gw-gateway"
+      gw.producer.bootstrap.servers: "2110526_kafka1:2851"
+      gw.producer.retries: "3"
+      gw.producer.enable.idempotence: "true"
+      gw.producer.linger.ms: "1"
+      gw.producer.acks: "all"
+      gw.poolsize: 1000
+    depends_on:
+      - 2110526_kafka1
