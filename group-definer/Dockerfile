@@ -2,6 +2,7 @@ FROM openjdk:11-jre-slim
 
 WORKDIR /app
 
-COPY target/fiscais-gd.jar .
+# mudar fiscais-gd.jar para o Jar equivalente ao MyGroupDefiner apropriado
+# COPY target/fiscais-gd.jar .
 
-CMD ["java", "-jar", "fiscais-gd.jar"]
+# CMD ["java", "-jar", "fiscais-gd.jar"]
