@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>AttendanceChecker</groupId>
+    <groupId>br.com.meslin</groupId>
     <artifactId>group-definer</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -31,10 +31,10 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>attendance-gd</finalName>
+                            <finalName>my-gd</finalName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>AttendanceChecker.MyGroupDefiner</mainClass>
+                                    <mainClass>br.com.meslin.MyGroupDefiner</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -49,6 +49,10 @@
             <id>LAC PUC-Rio</id>
             <url>https://bitbucket.org/endler/contextnet-dependencies/raw/master</url>
         </repository>        
+        <repository>
+            <id>JMapViewer</id>
+            <url>https://josm.openstreetmap.de/nexus/content/repositories/releases/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -87,5 +91,21 @@
             <artifactId>ExchangeData</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.openstreetmap.jmapviewer</groupId>
+            <artifactId>jmapviewer</artifactId>
+            <version>2.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.12.3</version> <!-- or the latest version -->
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version> <!-- or the latest version -->
+        </dependency>
     </dependencies>
+    
 </project>

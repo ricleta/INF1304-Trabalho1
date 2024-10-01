@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>AttendanceChecker</groupId>
-    <artifactId>fiscais</artifactId>
+    <groupId>br.com.meslin</groupId>
+    <artifactId>aluno-mn</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>  <!-- usar pom no lugar de jar para não gerar o arquivo 1.0-SNAPSHOT.jar -->
 
-    <name>Fiscais</name>
+    <name>PresenceMobileNode</name>
     <description>Exemplo de uso de ContextNet com fiscais - Mobile Node</description>
 
     <properties>
@@ -84,7 +84,6 @@
     </dependencies>
 
     <build>
-    <sourceDirectory>src</sourceDirectory>
         <plugins>
             <!-- Adicionar o plugin maven-shade-plugin para criar fat jars -->
             <!-- From https://stackoverflow.com/questions/60688528/java-grpc-issue-java-lang-noclassdeffounderror-io-grpc-bindableservice/78844996#78844996 -->
@@ -100,14 +99,31 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>fiscais-mn</finalName>
+                            <finalName>my-mn</finalName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>AttendanceChecker.MobileNode</mainClass>
+                                    <mainClass>br.com.meslin.MobileNode</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
                     </execution>
+                    <!--
+                    <execution>
+                        <id>server-fat-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>rmi-server</finalName>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>br.com.meslin.calculator.server.Server</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                    -->
                 </executions>
             </plugin>
         </plugins>

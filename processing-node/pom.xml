@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>AttendanceChecker</groupId>
+    <groupId>br.com.meslin</groupId>
     <artifactId>fiscais</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>  <!-- usar pom no lugar de jar para não gerar o arquivo 1.0-SNAPSHOT.jar -->
@@ -93,12 +93,29 @@
                             <finalName>fiscais-pn</finalName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>AttendanceChecker.ProcessingNode</mainClass>
+                                    <mainClass>br.com.meslin.ProcessingNode</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
                     </execution>
-         </executions>
+                    <!--
+                    <execution>
+                        <id>server-fat-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>rmi-server</finalName>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>br.com.meslin.calculator.server.Server</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                    -->
+                </executions>
             </plugin>
         </plugins>
     </build>
