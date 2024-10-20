@@ -1,1 +1,4 @@
-{"matricula":123,"nome":"ARNALDO","turmas":["inf1304","inf1748"]}
+[
+    {"matricula":123,"nome":"ARNALDO","turmas":["inf1304","inf1748"]},
+    {"matricula":456,"nome":"MARIA","turmas":["inf1304","inf1502"]}
+]

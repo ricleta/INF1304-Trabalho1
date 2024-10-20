@@ -10,7 +10,7 @@
     <packaging>jar</packaging>  <!-- usar pom no lugar de jar para não gerar o arquivo 1.0-SNAPSHOT.jar -->
 
     <name>PresenceMobileNode</name>
-    <description>Exemplo de uso de ContextNet com fiscais - Mobile Node</description>
+    <description>Exemplo de uso de ContextNet - Mobile Node</description>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -107,23 +107,6 @@
                             </transformers>
                         </configuration>
                     </execution>
-                    <!--
-                    <execution>
-                        <id>server-fat-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>rmi-server</finalName>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>br.com.meslin.calculator.server.Server</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                    -->
                 </executions>
             </plugin>
         </plugins>

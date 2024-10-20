@@ -71,15 +71,19 @@ public class MyGroupDefiner implements GroupSelection {
      */
     public Set<Integer> getNodesGroupByContext(ObjectNode contextInfo) {
         Set<Integer> setOfGroups = new HashSet<Integer>();
-
         System.out.println("recebendo contexto");
+        
         String matricula = String.valueOf(contextInfo.get("matricula"));
         String local = String.valueOf(contextInfo.get("local"));
+        String data = String.valueOf(contextInfo.get("date"));
+
         System.out.println(matricula);
         System.out.println(local);
+        System.out.println(data);
+
         User user = this.user_dto.getUser(Integer.parseInt(matricula));
         System.out.println(user.nome);
-        return null;
+        return setOfGroups;
     }
 
     /**

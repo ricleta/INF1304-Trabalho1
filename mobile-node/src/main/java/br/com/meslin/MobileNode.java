@@ -24,11 +24,13 @@ public class MobileNode extends CKMobileNode {
     private static final String OPTION_UNICAST = "I";
     private static final String OPTION_PN = "P";
     private static final String OPTION_EXIT = "Z";
+    private static final String OPTION_UPDATE_LOCATION = "T";
 
     // a variável não pode ser local porque está sendo usada em uma função lambda
     // Controle do loop eterno até que ele termine
     private boolean fim = false;
-    private Integer matricula = 123;
+    private Integer matricula;
+    private String local = "INVALIDO";
 
     /**
      * main
@@ -62,16 +64,21 @@ public class MobileNode extends CKMobileNode {
         // optionsMap.put(OPTION_GROUPCAST, this::sendGroupcastMessage);
         optionsMap.put(OPTION_UNICAST, this::sendUnicastMessage);
         optionsMap.put(OPTION_PN, this::sendMessageToPN);
+        optionsMap.put(OPTION_UPDATE_LOCATION, this::updateLocation);
         optionsMap.put(OPTION_EXIT, scanner -> fim = true);
 
+        System.out.println("Qual a sua matricula?");
+        this.matricula = keyboard.nextInt();
+        keyboard.nextLine(); // consome o \n
+
         while (!fim) {
-            System.out.print("Mensagem para (G)rupo ou (I)ndivíduo (P)rocessing Node (Z para terminar)? ");
+            System.out.print("(T) Trocar lugar | (Z) para terminar)? ");
             String linha = keyboard.nextLine().trim().toUpperCase();
-            System.out.printf("Sua opção foi %s.", linha);
+            System.out.printf("Sua opção foi %s. ", linha);
             if (optionsMap.containsKey(linha))
                 optionsMap.get(linha).accept(keyboard);
             else
-                System.out.printf("Opção %s inválida.\n", linha);
+                System.out.println("Opção inválida");
         }
         keyboard.close();
         System.out.println("FIM!");
@@ -91,6 +98,12 @@ public class MobileNode extends CKMobileNode {
         } catch (Exception e) {
             logger.error("Error scheduling SendLocationTask", e);
         }
+    }
+
+    private void updateLocation(Scanner keyboard)
+    {
+        System.out.print("Entre com o novo local: ");
+        this.local = keyboard.nextLine();
     }
 
     /**
@@ -191,8 +204,7 @@ public class MobileNode extends CKMobileNode {
         ObjectNode contextObj = objMapper.createObjectNode();
 
         contextObj.put("matricula", this.matricula);
-        System.out.println(this.matricula);
-        contextObj.put("local", "T01");
+        contextObj.put("local", this.local);
         contextObj.put("date", new Date().toString());
 
         try {

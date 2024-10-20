@@ -33,6 +33,8 @@ services:
       gd.one.producer.retries: "3"
       gd.one.producer.enable.idempotence: "true"
       gd.one.producer.linger.ms: "1"
+    volumes:
+      - /workspaces/INF1304-Trabalho1/group-definer/src/main/java/br/com/meslin/auxiliar/users.json:/users.json
     deploy:
       resources:
         limits:
