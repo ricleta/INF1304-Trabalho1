@@ -16,7 +16,10 @@ import com.fasterxml.jackson.databind.deser.std.StringArrayDeserializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import main.java.br.com.meslin.auxiliar.UserJson;
+import main.java.br.com.meslin.auxiliar.TurmaJson;
 import main.java.br.com.meslin.auxiliar.models.User;
+import main.java.br.com.meslin.auxiliar.models.Turma;
+import main.java.br.com.meslin.auxiliar.models.SalaHorario;
 import ckafka.data.Swap;
 import main.java.ckafka.GroupDefiner;
 import main.java.ckafka.GroupSelection;
@@ -25,6 +28,7 @@ public class MyGroupDefiner implements GroupSelection {
     /** Logger */
     final Logger logger = LoggerFactory.getLogger(GroupDefiner.class);
     private UserJson user_dto = new UserJson();
+    private TurmaJson turma_dto = new TurmaJson();
 
     public static void main(String[] args) {
         MyGroupDefiner MyGD = new MyGroupDefiner();
@@ -83,6 +87,19 @@ public class MyGroupDefiner implements GroupSelection {
 
         User user = this.user_dto.getUser(Integer.parseInt(matricula));
         System.out.println(user.nome);
+
+        for (String turma : user.turmas) {
+            Turma turma_obj = this.turma_dto.getTurma(turma);
+            System.out.println(turma_obj.disciplina);
+            System.out.println(turma_obj.id_turma);
+            System.out.println(turma_obj.professor);
+
+            for (SalaHorario sala_horario : turma_obj.salas_horarios) {
+                System.out.println(sala_horario.sala);
+                System.out.println(sala_horario.horario);
+            }
+        }
+
         return setOfGroups;
     }
 

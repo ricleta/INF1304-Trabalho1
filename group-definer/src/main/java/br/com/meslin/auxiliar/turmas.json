@@ -1,0 +1,52 @@
+[
+    {
+        "id_turma": "3WA",
+        "disciplina": "inf1304",
+        "professor": "Alexandre",
+        "duracao": 2,
+        "salas_horarios": [
+            {
+                "sala": "LABGRAD",
+                "horario": "terca 9:00"
+            },
+            {
+                "sala": "T01",
+                "horario": "quinta 9:00"
+            }
+        ]
+    },
+    
+    {
+        "id_turma": "3WA",
+        "disciplina": "inf1748",
+        "professor": "Irineu",
+        "duracao": 1,
+        "salas_horarios": [
+            {
+                "sala": "L420",
+                "horario": "segunda 9:00"
+            },
+            {
+                "sala": "L420",
+                "horario": "quarta 9:00"
+            }
+        ]
+    },
+
+    {
+        "id_turma": "3WB",
+        "disciplina": "inf1748",
+        "professor": "Cleber",
+        "duracao": 1,
+        "salas_horarios": [
+            {
+                "sala": "L522",
+                "horario": "segunda 9:00"
+            },
+            {
+                "sala": "L522",
+                "horario": "quarta 9:00"
+            }
+        ]
+    }
+]
