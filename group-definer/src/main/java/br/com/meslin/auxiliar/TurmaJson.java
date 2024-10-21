@@ -49,4 +49,19 @@ public class TurmaJson {
 
         return null;
     }
+
+    public int getGroupIDFromTurma(String disciplina_turma) {
+        String[] parts = disciplina_turma.split(" ");
+        String id_disciplina = parts[0];
+        String id_turma = parts[1];
+
+        System.out.println("id_disciplina: " + id_disciplina);
+        System.out.println("id_turma: " + id_turma);
+
+        if (id_disciplina.equals("inf1304") && id_turma.equals("3WA")) {
+            return 6000;
+        }
+
+        return -1;
+    }
 }

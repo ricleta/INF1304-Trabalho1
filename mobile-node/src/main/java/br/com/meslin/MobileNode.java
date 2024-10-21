@@ -61,9 +61,9 @@ public class MobileNode extends CKMobileNode {
         Map<String, Consumer<Scanner>> optionsMap = new HashMap<>();
 
         // Mapeia as opções para as funções correspondentes
-        // optionsMap.put(OPTION_GROUPCAST, this::sendGroupcastMessage);
         optionsMap.put(OPTION_UNICAST, this::sendUnicastMessage);
         optionsMap.put(OPTION_PN, this::sendMessageToPN);
+        optionsMap.put(OPTION_GROUPCAST, this::sendGroupcastMessage);
         optionsMap.put(OPTION_UPDATE_LOCATION, this::updateLocation);
         optionsMap.put(OPTION_EXIT, scanner -> fim = true);
 

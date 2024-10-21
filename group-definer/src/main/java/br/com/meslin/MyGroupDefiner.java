@@ -100,6 +100,9 @@ public class MyGroupDefiner implements GroupSelection {
             }
         }
 
+        // add error handling
+        setOfGroups.add(this.turma_dto.getGroupIDFromTurma("inf1304 3WA"));
+        System.out.println(setOfGroups);
         return setOfGroups;
     }
 
