@@ -47,4 +47,8 @@ public class UserJson {
 
         return null;
     }
+
+    public User[] getUserList() {
+        return this.user_list;
+    }
 }

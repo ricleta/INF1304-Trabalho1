@@ -17,7 +17,6 @@ public class TurmaJson {
         try {
             FileInputStream inputStream = new FileInputStream(filePath);
             String text = IOUtils.toString(inputStream);
-            // System.out.println(text);
             
             // Read the JSON array directly into a Turma array
             turmas = objectMapper.readValue(text, Turma[].class);
@@ -58,8 +57,19 @@ public class TurmaJson {
         System.out.println("id_disciplina: " + id_disciplina);
         System.out.println("id_turma: " + id_turma);
 
+        /* 
+         * 3000 -> INF1304 - 3WA
+         * 3100 -> INF1748 - 3WA
+         * 3101 -> INF1748 - 3WB 
+        */
         if (id_disciplina.equals("inf1304") && id_turma.equals("3WA")) {
-            return 6000;
+            return 3000;
+        }
+        if (id_disciplina.equals("inf1748") && id_turma.equals("3WA")) {
+            return 3100;
+        }
+        if (id_disciplina.equals("inf1748") && id_turma.equals("3WB")) {
+            return 3101;
         }
 
         return -1;

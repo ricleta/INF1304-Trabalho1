@@ -8,6 +8,8 @@ public class Turma {
     public String professor;
 
     public int duracao;
+
+    public int group;
     
     public SalaHorario[] salas_horarios;
 

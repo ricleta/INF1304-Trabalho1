@@ -48,23 +48,57 @@ public class MyGroupDefiner implements GroupSelection {
         /**
          * 6000 -> Professores
          * 6001 -> Alunos
-         * 6100 -> INF1304 - 3WA
-         * 6200 -> T01
-         * 6201 -> LABGRAD
-         * 6202 -> Na Medida
-         * 6300 -> INF1304 - 3WA - PRESENTE
-         * 6400 -> INF1304 - 3WA - FALTA
+         * 3000 -> INF1304 - 3WA
+         * 3100 -> INF1748 - 3WA
+         * 3101 -> INF1748 - 3WB
+         * 16500 -> T01
+         * 16501 -> LABGRAD
+         * 16502 -> L420
+         * 16503 -> L522
+         * 16001 -> INF1304 - 3WA - PRESENTE
+         * 16002 -> INF1304 - 3WA - FALTA
+         * 16003 -> INF1748 - 3WA - PRESENTE
+         * 16004 -> INF1748 - 3WA - FALTA
+         * 16005 -> INF1748 - 3WB - PRESENTE
+         * 16006 -> INF1748 - 3WB - FALTA
          */
         Set<Integer> setOfGroups = new HashSet<Integer>();
+     
         setOfGroups.add(6000);
         setOfGroups.add(6001);
-        setOfGroups.add(6100);
-        setOfGroups.add(6200);
-        setOfGroups.add(6201);
-        setOfGroups.add(6202);
-        setOfGroups.add(6300);
-        setOfGroups.add(6400);
+        setOfGroups.add(3000);
+        setOfGroups.add(3100);
+        setOfGroups.add(3101);
+        setOfGroups.add(16500);
+        setOfGroups.add(16501);
+        setOfGroups.add(16502);
+        setOfGroups.add(16503);
+        setOfGroups.add(16001);
+        setOfGroups.add(16002);
+        setOfGroups.add(16003);
+        setOfGroups.add(16004);
+        setOfGroups.add(16005);
+        setOfGroups.add(16006);
+
         return setOfGroups;
+    }
+
+    private int getGroupIDFromLocation(String location)
+    {
+        System.out.println("Location: " + location);
+        location = location.replace("\"", "");
+        switch (location) {
+            case "T01":
+                return 16500;
+            case "LABGRAD":
+                return 16501;
+            case "L420":
+                return 16502;
+            case "L522":
+                return 16503;
+            default:
+                return -1;
+        }
     }
 
     /**
@@ -75,33 +109,56 @@ public class MyGroupDefiner implements GroupSelection {
      */
     public Set<Integer> getNodesGroupByContext(ObjectNode contextInfo) {
         Set<Integer> setOfGroups = new HashSet<Integer>();
-        System.out.println("recebendo contexto");
+        System.out.println("#--------------# Recebendo contexto #--------------#");
         
         String matricula = String.valueOf(contextInfo.get("matricula"));
         String local = String.valueOf(contextInfo.get("local"));
         String data = String.valueOf(contextInfo.get("date"));
 
-        System.out.println(matricula);
-        System.out.println(local);
-        System.out.println(data);
+        System.out.println("Matricula: " + matricula);
+        System.out.println("Local: " + local);
+        System.out.println("Data: " + data);
 
         User user = this.user_dto.getUser(Integer.parseInt(matricula));
-        System.out.println(user.nome);
+        System.out.println("Nome: " + user.nome);
 
         for (String turma : user.turmas) {
             Turma turma_obj = this.turma_dto.getTurma(turma);
-            System.out.println(turma_obj.disciplina);
-            System.out.println(turma_obj.id_turma);
-            System.out.println(turma_obj.professor);
+            // System.out.println(turma_obj.disciplina);
+            // System.out.println(turma_obj.id_turma);
+            // System.out.println(turma_obj.professor);
+            System.out.println("Group ID = " + turma_obj.group);
 
-            for (SalaHorario sala_horario : turma_obj.salas_horarios) {
-                System.out.println(sala_horario.sala);
-                System.out.println(sala_horario.horario);
+            // for (SalaHorario sala_horario : turma_obj.salas_horarios) {
+            //     System.out.println(sala_horario.sala);
+            //     System.out.println(sala_horario.horario);
+            // }
+
+            try {
+                int groupId = this.turma_dto.getGroupIDFromTurma(turma);
+                
+                if (groupId != -1) {
+                    setOfGroups.add(groupId);
+                } else {
+                    logger.error("Invalid group ID for turma: " + turma);
+                }
+            } catch (Exception e) {
+                logger.error("Exception occurred while getting group ID for turma: " + turma, e);
             }
         }
 
-        // add error handling
-        setOfGroups.add(this.turma_dto.getGroupIDFromTurma("inf1304 3WA"));
+        try {
+            int groupId = this.getGroupIDFromLocation(local);
+            
+            if (groupId != -1) {
+                setOfGroups.add(groupId);
+            } else {
+                logger.error("Invalid group ID for local: " + local);
+            }
+        } catch (Exception e) {
+            logger.error("Exception occurred while getting group ID for turma: " + local, e);
+        }
+
         System.out.println(setOfGroups);
         return setOfGroups;
     }
