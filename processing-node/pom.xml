@@ -95,7 +95,7 @@
                             <finalName>fiscais-pn</finalName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>br.com.meslin.ProcessingNode</mainClass>
+                                    <mainClass>main.java.br.com.meslin.ProcessingNode</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
