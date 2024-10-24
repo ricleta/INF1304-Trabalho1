@@ -1,0 +1,5 @@
+br/com/meslin/models/Turma.class
+br/com/meslin/models/User.class
+br/com/meslin/models/SalaHorario.class
+br/com/meslin/UserJson.class
+br/com/meslin/TurmaJson.class

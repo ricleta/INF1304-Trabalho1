@@ -1,6 +1,1 @@
-br/com/meslin/MyGroupDefiner.class
-main/java/br/com/meslin/auxiliar/models/User.class
-main/java/br/com/meslin/auxiliar/UserJson.class
-main/java/br/com/meslin/auxiliar/models/SalaHorario.class
-main/java/br/com/meslin/auxiliar/models/Turma.class
-main/java/br/com/meslin/auxiliar/TurmaJson.class
+main/java/br/com/meslin/MyGroupDefiner.class

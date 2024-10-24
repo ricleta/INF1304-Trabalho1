@@ -1,4 +1,4 @@
-package br.com.meslin;
+package main.java.br.com.meslin;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -15,11 +15,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StringArrayDeserializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import main.java.br.com.meslin.auxiliar.UserJson;
-import main.java.br.com.meslin.auxiliar.TurmaJson;
-import main.java.br.com.meslin.auxiliar.models.User;
-import main.java.br.com.meslin.auxiliar.models.Turma;
-import main.java.br.com.meslin.auxiliar.models.SalaHorario;
+import br.com.meslin.TurmaJson;
+import br.com.meslin.UserJson;
+import br.com.meslin.models.User;
+import br.com.meslin.models.Turma;
+import br.com.meslin.models.SalaHorario;
 import ckafka.data.Swap;
 import main.java.ckafka.GroupDefiner;
 import main.java.ckafka.GroupSelection;
