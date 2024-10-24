@@ -27,27 +27,34 @@ import main.java.ckafka.GroupSelection;
 public class MyGroupDefiner implements GroupSelection {
     /** Logger */
     final Logger logger = LoggerFactory.getLogger(GroupDefiner.class);
+    
+    /** objects to help read and manipulate user */
     private UserJson user_dto = new UserJson();
+    
+    /** objects to help read and manipulate turma */
     private TurmaJson turma_dto = new TurmaJson();
 
     public static void main(String[] args) {
         MyGroupDefiner MyGD = new MyGroupDefiner();
     }
 
+    /**
+     * Constructor
+     */
     public MyGroupDefiner() {
-
         ObjectMapper objectMapper = new ObjectMapper();
         Swap swap = new Swap(objectMapper);
         new GroupDefiner(this, swap);
     }
 
     /**
-     * Conjunto com todos os grupos que esse GroupDefiner controla.
+     * Set with all the groups that this GroupDefiner controls.
+     * @return set with all the groups that this GroupDefiner manages
      */
     public Set<Integer> groupsIdentification() {
         /**
-         * 6000 -> Professores
-         * 6001 -> Alunos
+         * 6000 -> Professors
+         * 6001 -> Students
          * 3000 -> INF1304 - 3WA
          * 3100 -> INF1748 - 3WA
          * 3101 -> INF1748 - 3WB
@@ -55,12 +62,12 @@ public class MyGroupDefiner implements GroupSelection {
          * 16501 -> LABGRAD
          * 16502 -> L420
          * 16503 -> L522
-         * 16001 -> INF1304 - 3WA - PRESENTE
-         * 16002 -> INF1304 - 3WA - FALTA
-         * 16003 -> INF1748 - 3WA - PRESENTE
-         * 16004 -> INF1748 - 3WA - FALTA
-         * 16005 -> INF1748 - 3WB - PRESENTE
-         * 16006 -> INF1748 - 3WB - FALTA
+         * 16001 -> INF1304 - 3WA - PRESENT
+         * 16002 -> INF1304 - 3WA - ABSENT
+         * 16003 -> INF1748 - 3WA - PRESENT
+         * 16004 -> INF1748 - 3WA - ABSENT
+         * 16005 -> INF1748 - 3WB - PRESENT
+         * 16006 -> INF1748 - 3WB - ABSENT
          */
         Set<Integer> setOfGroups = new HashSet<Integer>();
      
@@ -83,6 +90,11 @@ public class MyGroupDefiner implements GroupSelection {
         return setOfGroups;
     }
 
+    /**
+     * Function to get user group ID from location
+     * @param location
+     * @return group ID
+     */
     private int getGroupIDFromLocation(String location)
     {
         System.out.println("Location: " + location);
@@ -102,14 +114,15 @@ public class MyGroupDefiner implements GroupSelection {
     }
 
     /**
-     * Conjunto com todos os grupos relativos a esse contextInfo.
-     * Somente grupos controlados por esse GroupDefiner.
+     * Set with all the groups related to this contextInfo.
+     * Only groups controlled by this GroupDefiner.
      * 
      * @param contextInfo context info
+     * @return set with all the groups related to this contextInfo
      */
     public Set<Integer> getNodesGroupByContext(ObjectNode contextInfo) {
         Set<Integer> setOfGroups = new HashSet<Integer>();
-        System.out.println("#--------------# Recebendo contexto #--------------#");
+        System.out.println("#--------------# Receiving context #--------------#");
         
         String matricula = String.valueOf(contextInfo.get("matricula"));
         String local = String.valueOf(contextInfo.get("local"));
@@ -146,7 +159,7 @@ public class MyGroupDefiner implements GroupSelection {
                 logger.error("Exception occurred while getting group ID for turma: " + turma, e);
             }
         }
-
+        
         try {
             int groupId = this.getGroupIDFromLocation(local);
             

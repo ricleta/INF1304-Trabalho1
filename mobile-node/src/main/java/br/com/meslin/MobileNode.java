@@ -18,24 +18,27 @@ import lac.cnclib.sddl.message.Message;
 import main.java.ckafka.mobile.CKMobileNode;
 import main.java.ckafka.mobile.tasks.SendLocationTask;
 
+/**
+ * Mobile Node
+ * <br>
+ * Implements a mobile node that contains a student's information to check their attendance
+ */
 public class MobileNode extends CKMobileNode {
-    // Opções válidas de entrada do usuário
+    // Valid user input options
     private static final String OPTION_GROUPCAST = "G";
     private static final String OPTION_UNICAST = "I";
     private static final String OPTION_PN = "P";
     private static final String OPTION_EXIT = "Z";
     private static final String OPTION_UPDATE_LOCATION = "T";
 
-    // a variável não pode ser local porque está sendo usada em uma função lambda
-    // Controle do loop eterno até que ele termine
+    // The variable cannot be local because it is being used in a lambda function
+    // Control the infinite loop until it ends
     private boolean fim = false;
     private Integer matricula;
     private String local = "INVALIDO";
 
     /**
      * main
-     * <br>
-     * 
      * @param args command line arguments
      */
     public static void main(String[] args) {
@@ -50,7 +53,7 @@ public class MobileNode extends CKMobileNode {
     }
 
     /**
-     * Executa o Mobile Node.
+     * Executes the Mobile Node.
      * <br>
      * Read user option from keyboard (unicast or groupcast message)<br>
      * Read destination receipt from keyboard (UUID or Group)<br>
@@ -60,33 +63,40 @@ public class MobileNode extends CKMobileNode {
     private void runMN(Scanner keyboard) {
         Map<String, Consumer<Scanner>> optionsMap = new HashMap<>();
 
-        // Mapeia as opções para as funções correspondentes
+        // Maps options to corresponding functions
         optionsMap.put(OPTION_UNICAST, this::sendUnicastMessage);
         optionsMap.put(OPTION_PN, this::sendMessageToPN);
         optionsMap.put(OPTION_GROUPCAST, this::sendGroupcastMessage);
         optionsMap.put(OPTION_UPDATE_LOCATION, this::updateLocation);
         optionsMap.put(OPTION_EXIT, scanner -> fim = true);
 
+        // Requests the user's registration number
         System.out.println("Qual a sua matricula?");
         this.matricula = keyboard.nextInt();
-        keyboard.nextLine(); // consome o \n
+        keyboard.nextLine(); // consumes the \n
 
+        // Main loop that continues until the 'fim' variable is true
         while (!fim) {
-            System.out.print("(T) Trocar lugar | (Z) para terminar)? ");
+            // Requests the user's option
+            System.out.print("(T) Change location | (Z) to finish)? ");
             String linha = keyboard.nextLine().trim().toUpperCase();
-            System.out.printf("Sua opção foi %s. ", linha);
+            System.out.printf("Your option was %s. ", linha);
+
+            // Checks if the option is valid and executes the corresponding function
             if (optionsMap.containsKey(linha))
                 optionsMap.get(linha).accept(keyboard);
             else
-                System.out.println("Opção inválida");
+                System.out.println("Invalid option");
         }
+
+        // Closes the scanner and ends the program
         keyboard.close();
-        System.out.println("FIM!");
+        System.out.println("END!");
         System.exit(0);
     }
 
     /**
-     * Quando estiver conectado, enviar localização a cada instante
+     * When connected, send location at each instant
      */
     @Override
     public void connected(NodeConnection nodeConnection) {
@@ -100,23 +110,22 @@ public class MobileNode extends CKMobileNode {
         }
     }
 
-    private void updateLocation(Scanner keyboard)
-    {
-        System.out.print("Entre com o novo local: ");
+    private void updateLocation(Scanner keyboard) {
+        System.out.print("Enter the new location: ");
         this.local = keyboard.nextLine();
     }
 
     /**
-     * Lê a mensagem via linha de comando do usuário.
+     * Reads the message via command line from the user.
      * <br>
-     * Envia uma mensagem em unicast
+     * Sends a unicast message
      */
     private void sendUnicastMessage(Scanner keyboard) {
-        System.out.println("Mensagem unicast. Entre com o UUID do indivíduo: ");
+        System.out.println("Unicast message. Enter the individual's UUID: ");
         String uuid = keyboard.nextLine();
-        System.out.print("Entre com a mensagem: ");
+        System.out.print("Enter the message: ");
         String messageText = keyboard.nextLine();
-        System.out.println(String.format("Mensagem de |%s| para %s.", messageText, uuid));
+        System.out.println(String.format("Message from |%s| to %s.", messageText, uuid));
         // Create and send the message
         SwapData privateData = new SwapData();
         privateData.setMessage(messageText.getBytes(StandardCharsets.UTF_8));
@@ -128,7 +137,7 @@ public class MobileNode extends CKMobileNode {
     }
 
     /**
-     * Recebe mensagens
+     * Receives messages
      */
     @Override
     public void newMessageReceived(NodeConnection nodeConnection, Message message) {
@@ -147,10 +156,10 @@ public class MobileNode extends CKMobileNode {
     }
 
     /**
-     * Envia mensagem para o Processing Node estacionário
+     * Sends message to the stationary Processing Node
      */
     private void sendMessageToPN(Scanner keyboard) {
-        System.out.print("Entre com a mensagem: ");
+        System.out.print("Enter the message: ");
         String messageText = keyboard.nextLine();
 
         ApplicationMessage message = createDefaultApplicationMessage();
@@ -183,11 +192,11 @@ public class MobileNode extends CKMobileNode {
      */
     private void sendGroupcastMessage(Scanner keyboard) {
         String group;
-        System.out.print("Mensagem groupcast. Entre com o número do grupo: ");
+        System.out.print("Groupcast message. Enter the group number: ");
         group = keyboard.nextLine();
-        System.out.print("Entre com a mensagem: ");
+        System.out.print("Enter the message: ");
         String messageText = keyboard.nextLine();
-        System.out.println(String.format("Mensagem de |%s| para o grupo %s.", messageText, group));
+        System.out.println(String.format("Message from |%s| to group %s.", messageText, group));
         // Create and send the message
         SwapData groupData = new SwapData();
         groupData.setMessage(messageText.getBytes(StandardCharsets.UTF_8));
@@ -198,6 +207,11 @@ public class MobileNode extends CKMobileNode {
         sendMessageToGateway(message);
     }
 
+    /**
+     * Updates user groups by sending updated location to group definer
+     * @param messageCount
+     * @return context with updated location
+     */
     @Override
     public SwapData newLocation(Integer messageCount) {
         ObjectMapper objMapper = new ObjectMapper();

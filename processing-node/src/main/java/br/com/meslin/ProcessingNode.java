@@ -15,21 +15,20 @@ import ckafka.data.SwapData;
 import main.java.application.ModelApplication;
 import main.java.br.com.meslin.auxiliar;
 
-
 public class ProcessingNode extends ModelApplication {
     private Swap swap;
     private ObjectMapper objectMapper;
 
-    // Opções válidas de entrada do usuário
+    // Valid user input options
     private static final String OPTION_GROUPCAST = "G";
     private static final String OPTION_UNICAST = "I";
     private static final String OPTION_PN = "P";
     private static final String OPTION_EXIT = "Z";
 
-    // a variável não pode ser local porque está sendo usada em uma função lambda
-    // Controle do loop eterno até que ele termine
-    
-    private UserJson user_dto = new UserJson();    private boolean fim = false;
+    // The variable cannot be local because it is being used in a lambda function
+    // Control of the eternal loop until it ends
+    private UserJson user_dto = new UserJson();
+    private boolean fim = false;
 
     /**
      * Constructor
@@ -49,31 +48,30 @@ public class ProcessingNode extends ModelApplication {
         pn.runPN(keyboard);
     }
 
-
-        /**
+    /**
      * TODO
      */
     public void runPN(Scanner keyboard) {
         Map<String, Consumer<Scanner>> optionsMap = new HashMap<>();
 
-        // Mapeia as opções para as funções correspondentes
+        // Map options to corresponding functions
         optionsMap.put(OPTION_GROUPCAST, this::sendGroupcastMessage);
         optionsMap.put(OPTION_UNICAST, this::sendUnicastMessage);
 //        optionsMap.put(OPTION_PN, this::sendMessageToPN);
         optionsMap.put(OPTION_EXIT, scanner -> fim = true);
-        ;
+
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(check_for_classes(), 0, 60000);
 
         while(!fim) {
-            System.out.print("Mensagem para (G)rupo ou (I)ndivíduo (P)rocessing Node (Z para terminar)? ");
+            System.out.print("Message to (G)roup or (I)ndividual (P)rocessing Node (Z to end)? ");
             String linha = keyboard.nextLine().trim().toUpperCase();
-            System.out.printf("Sua opção foi %s.", linha);
+            System.out.printf("Your option was %s.", linha);
             if(optionsMap.containsKey(linha)) optionsMap.get(linha).accept(keyboard);
-            else System.out.printf("Opção %s inválida.\n", linha);
+            else System.out.printf("Invalid option %s.\n", linha);
         }
         keyboard.close();
-        System.out.println("FIM!");
+        System.out.println("END!");
         System.exit(0);
     }
 
@@ -98,10 +96,10 @@ public class ProcessingNode extends ModelApplication {
 
         for (SalaHorario sala_horario : turma.salas_horarios) {
             if (sala_horario.horario == hour) {
-                System.out.println("Hora de aula");
+                System.out.println("Class time");
                 
-                // envia msg pro grupo
-                sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData("Hora de aula")));
+                // send message to the group
+                sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData("Class time"))));
             }
         }
     }
@@ -119,11 +117,12 @@ public class ProcessingNode extends ModelApplication {
      */
     @Override
     public void recordReceived(ConsumerRecord record) {
-        System.out.println(String.format("Mensagem recebida de %s", record.key()));        
+        System.out.println(String.format("Message received from %s", record.key()));        
         try {
             SwapData data = swap.SwapDataDeserialization((byte[]) record.value());
             String text = new String(data.getMessage(), StandardCharsets.UTF_8);
-        User[] user_list = this.user_dto.get_user_list() System.out.println("Mensagem recebida = " + text);
+            User[] user_list = this.user_dto.get_user_list();
+            System.out.println("Message received = " + text);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -133,7 +132,7 @@ public class ProcessingNode extends ModelApplication {
      * 
      * @param keyboard
      */
-        private void sendUnicastMessage(Scanner keyboard) {
+    private void sendUnicastMessage(Scanner keyboard) {
         System.out.println("UUID:\nHHHHHHHH-HHHH-HHHH-HHHH-HHHHHHHHHHHH");
         String uuid = keyboard.nextLine();
         System.out.print("Message: ");
@@ -152,18 +151,19 @@ public class ProcessingNode extends ModelApplication {
      * @param keyboard
      */
     private void sendGroupcastMessage(Scanner keyboard) {
-        current_time = new Date();
-// create date
-// if ta na hora de alguma aula ou acabando uma aula
-//      envia msg pro grupo especifico
-
-        System.out.print("Mensagem groupcast. Entre com o número do grupo: ");
+        /**create date
+         * if it's time for a class or ending a class
+         * send message to the specific group
+        */
+        Date current_time = new Date();
+    
+        System.out.print("Groupcast message. Enter the group number: ");
         String group = keyboard.nextLine();
 
-        System.out.print("Entre com a mensagem: ");
+        System.out.print("Enter the message: ");
         String messageText = keyboard.nextLine();
 
-        System.out.println(String.format("Enviando mensagem %s para o grupo %s.",
+        System.out.println(String.format("Sending message %s to group %s.",
                                          messageText, group));
         try {
             sendRecord(createRecord("GroupMessageTopic", group,

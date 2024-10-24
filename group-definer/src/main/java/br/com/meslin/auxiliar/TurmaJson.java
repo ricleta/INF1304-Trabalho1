@@ -6,10 +6,18 @@ import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import main.java.br.com.meslin.auxiliar.models.Turma;
 
+/**
+ * Class to read the JSON file with the class information
+ */
 public class TurmaJson {
-
+    /** Variable that stores all classes read from the JSON file */
     private Turma[] turma_list = null;
 
+    /**
+     * Load the classes from the JSON file
+     * @param filePath path to the JSON file
+     * @return array with all classes read from the JSON file
+     */
     private Turma[] loadTurmasFromFile(String filePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         Turma[] turmas = null;
@@ -27,14 +35,26 @@ public class TurmaJson {
         return turmas;
     }
 
+    /**
+     * Constructor;
+     * Loads the classes from the JSON file, the path to the JSON file is hardcoded 
+     * and has to match the path in the container
+     */
     public TurmaJson() {
         // Path to the JSON file
         String jsonFilePath = "/turmas.json";
 
-        // Load the turmas from the JSON file
+        // Load the classes from the JSON file
         this.turma_list = loadTurmasFromFile(jsonFilePath);
     }
 
+    /** 
+     * Get the class from the class name
+     * @param disciplina_turma class name
+     * @return the class with the given name
+     * @return null if the class is not found
+     * @deprecated use getGroupIDFromTurma instead
+    */
     public Turma getTurma(String disciplina_turma) {
         String[] parts = disciplina_turma.split(" ");
         String id_disciplina = parts[0];
@@ -49,6 +69,12 @@ public class TurmaJson {
         return null;
     }
 
+    /**
+     * Get the group ID from the class name
+     * @param disciplina_turma
+     * @return the group ID
+     * @return -1 if the class is not found
+     */
     public int getGroupIDFromTurma(String disciplina_turma) {
         String[] parts = disciplina_turma.split(" ");
         String id_disciplina = parts[0];
