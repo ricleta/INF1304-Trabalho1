@@ -1,19 +1,27 @@
-package br.com.meslin;
+package main.java.br.com.meslin;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.function.Consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.meslin.models.Turma;
+import br.com.meslin.models.SalaHorario;
+import br.com.meslin.models.User;
+import br.com.meslin.UserJson;
+import br.com.meslin.TurmaJson;
 import ckafka.data.Swap;
 import ckafka.data.SwapData;
 import main.java.application.ModelApplication;
-import main.java.br.com.meslin.auxiliar;
 
 public class ProcessingNode extends ModelApplication {
     private Swap swap;
@@ -28,6 +36,7 @@ public class ProcessingNode extends ModelApplication {
     // The variable cannot be local because it is being used in a lambda function
     // Control of the eternal loop until it ends
     private UserJson user_dto = new UserJson();
+    private TurmaJson turma_dto = new TurmaJson();
     private boolean fim = false;
 
     /**
@@ -60,8 +69,8 @@ public class ProcessingNode extends ModelApplication {
 //        optionsMap.put(OPTION_PN, this::sendMessageToPN);
         optionsMap.put(OPTION_EXIT, scanner -> fim = true);
 
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(check_for_classes(), 0, 60000);
+        // Timer timer = new Timer();
+        // timer.scheduleAtFixedRate(check_for_classes(), 0, 60000);
 
         while(!fim) {
             System.out.print("Message to (G)roup or (I)ndividual (P)rocessing Node (Z to end)? ");
@@ -79,29 +88,44 @@ public class ProcessingNode extends ModelApplication {
         try {
             Date now = new Date();
             Timer timer = new Timer();
+            
             timer.scheduleAtFixedRate(
-                    check_for_classes, now, 60000);
-        } catch (Exception e) {
+                new TimerTask() {
+                    @Override
+                    public void run() 
+                    {
+                        // get all turmas
+                        Turma[] turmas = turma_dto.getTurmas();
+                        for (Turma turma : turmas) 
+                        {
+                            check_for_classes(turma);
+                        }
+                    }
+                }, now, 60000);
+        
+            } catch (Exception e) {
             logger.error("Error scheduling SendLocationTask", e);
         }
         return;
     }
     
     public void check_for_classes(Turma turma){
-        LocalDate current_date = new LocalDate();
+        // LocalDate current_date = LocalDate.now();
         
         // 1 == Monday ... 7 == Sunday
-        int day = current_date.getDayOfWeek().getValue();
-        int hour = current_date.getHours();
+        // int day = current_date.getDayOfWeek().getValue();
+        // int hour = LocalDate.now();
 
-        for (SalaHorario sala_horario : turma.salas_horarios) {
-            if (sala_horario.horario == hour) {
-                System.out.println("Class time");
+        // for (SalaHorario sala_horario : turma.salas_horarios) {
+            // if (sala_horario.horario.equals(hour)) 
+            // {
+                // String message = String.format("%s começa agora na sala %s", turma.id_turma, sala_horario.sala);
+            //     System.out.println(message);
                 
                 // send message to the group
-                sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData("Class time"))));
-            }
-        }
+                // sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData(message))));
+            // }
+        // }
     }
 
     public void get_presence(String turma) {   
@@ -110,7 +134,7 @@ public class ProcessingNode extends ModelApplication {
         // for (User user: user_list) {
         //     if ()
         // }
-    }        // public void get_presetn()
+    }
 
     /**
      * 
@@ -121,7 +145,7 @@ public class ProcessingNode extends ModelApplication {
         try {
             SwapData data = swap.SwapDataDeserialization((byte[]) record.value());
             String text = new String(data.getMessage(), StandardCharsets.UTF_8);
-            User[] user_list = this.user_dto.get_user_list();
+            User[] user_list = this.user_dto.getUserList();
             System.out.println("Message received = " + text);
         } catch (Exception e) {
             e.printStackTrace();
