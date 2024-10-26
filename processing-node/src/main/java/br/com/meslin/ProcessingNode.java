@@ -2,6 +2,10 @@ package main.java.br.com.meslin;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +30,7 @@ import main.java.application.ModelApplication;
 public class ProcessingNode extends ModelApplication {
     private Swap swap;
     private ObjectMapper objectMapper;
+    private ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
 
     // Valid user input options
     private static final String OPTION_GROUPCAST = "G";
@@ -73,11 +78,19 @@ public class ProcessingNode extends ModelApplication {
         // timer.scheduleAtFixedRate(check_for_classes(), 0, 60000);
 
         while(!fim) {
-            System.out.print("Message to (G)roup or (I)ndividual (P)rocessing Node (Z to end)? ");
-            String linha = keyboard.nextLine().trim().toUpperCase();
-            System.out.printf("Your option was %s.", linha);
-            if(optionsMap.containsKey(linha)) optionsMap.get(linha).accept(keyboard);
-            else System.out.printf("Invalid option %s.\n", linha);
+            this.start_scheduling();
+            // System.out.print("Message to (G)roup or (I)ndividual (P)rocessing Node (Z to end)? ");
+            // String linha = keyboard.nextLine().trim().toUpperCase();
+            // System.out.printf("Your option was %s.", linha);
+            // if(optionsMap.containsKey(linha)) optionsMap.get(linha).accept(keyboard);
+            // else System.out.printf("Invalid option %s.\n", linha);
+            
+            try{
+                Thread.sleep(60000);
+            }
+            catch(InterruptedException e){
+                System.out.println("Error: " + e);
+            }
         }
         keyboard.close();
         System.out.println("END!");
@@ -109,23 +122,65 @@ public class ProcessingNode extends ModelApplication {
         return;
     }
     
-    public void check_for_classes(Turma turma){
-        // LocalDate current_date = LocalDate.now();
-        
-        // 1 == Monday ... 7 == Sunday
-        // int day = current_date.getDayOfWeek().getValue();
-        // int hour = LocalDate.now();
-
-        // for (SalaHorario sala_horario : turma.salas_horarios) {
-            // if (sala_horario.horario.equals(hour)) 
-            // {
-                // String message = String.format("%s começa agora na sala %s", turma.id_turma, sala_horario.sala);
-            //     System.out.println(message);
+    public void check_for_classes(Turma turma) {
+        LocalDate currentDate = LocalDate.now(this.zoneId);
+        LocalTime currentTime = LocalTime.now(this.zoneId).withSecond(0).withNano(0);
+    
+        int dayOfWeek = currentDate.getDayOfWeek().getValue();
+    
+        // System.out.println("Date: " + currentDate);
+        // System.out.println("Time: " + currentTime);
+    
+        for (SalaHorario salaHorario : turma.salas_horarios) {
+            try {
+                int scheduledDay = salaHorario.getDayOfWeek();
+                LocalTime scheduledStartTime = LocalTime.parse(salaHorario.getTimeString(), DateTimeFormatter.ofPattern("HH:mm")).minusMinutes(10);
                 
-                // send message to the group
-                // sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData(message))));
-            // }
-        // }
+                // since we already subtracted 10 minutes from scheduledStartTime, 
+                // we only need to add the hours to get 10 min before the end time
+                LocalTime scheduledEndTime = scheduledStartTime.plusHours((turma.duracao));
+
+                // System.out.println("turma: " + turma.id_turma);
+                // System.out.println("Scheduled day: " + scheduledDay + " | Current day: " + dayOfWeek);
+                // System.out.println("Scheduled time: " + scheduledStartTime + " | Current time: " + currentTime);
+                
+                if (scheduledDay == dayOfWeek) 
+                {
+                    if (scheduledStartTime.equals(currentTime))
+                    {
+                        String message = String.format("Class for %s starts soon in room %s", turma.id_turma, salaHorario.sala);
+                        System.out.println(message);
+                        
+                        // Send message to the group
+                        try {
+                            sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData(message))));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            logger.error("Error SendGroupCastMessage", e);
+                        }
+                    }
+
+                    if (scheduledEndTime.equals(currentTime))
+                    {
+                        String message = String.format("Class for %s ends soon in room %s", turma.id_turma, salaHorario.sala);
+                        System.out.println(message);
+                        
+                        // Send message to the group
+                        try 
+                        {
+                            sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData(message))));
+                        } catch (Exception e) 
+                        {
+                            e.printStackTrace();
+                            logger.error("Error SendGroupCastMessage", e);
+                        }
+                    }
+                }
+
+            } catch (NumberFormatException | DateTimeParseException e) {
+                System.out.println("Error parsing schedule: " + salaHorario + " - " + e.getMessage());
+            }
+        }
     }
 
     public void get_presence(String turma) {   

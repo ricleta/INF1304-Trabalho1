@@ -136,11 +136,11 @@ public class MyGroupDefiner implements GroupSelection {
         System.out.println("Nome: " + user.nome);
 
         for (String turma : user.turmas) {
-            Turma turma_obj = this.turma_dto.getTurma(turma);
+            // Turma turma_obj = this.turma_dto.getTurma(turma);
             // System.out.println(turma_obj.disciplina);
             // System.out.println(turma_obj.id_turma);
             // System.out.println(turma_obj.professor);
-            System.out.println("Group ID = " + turma_obj.group);
+            // System.out.println("Group ID = " + turma_obj.group);
 
             // for (SalaHorario sala_horario : turma_obj.salas_horarios) {
             //     System.out.println(sala_horario.sala);

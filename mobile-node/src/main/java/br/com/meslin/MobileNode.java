@@ -1,6 +1,8 @@
 package br.com.meslin;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,8 @@ public class MobileNode extends CKMobileNode {
     private static final String OPTION_PN = "P";
     private static final String OPTION_EXIT = "Z";
     private static final String OPTION_UPDATE_LOCATION = "T";
+
+    private ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
 
     // The variable cannot be local because it is being used in a lambda function
     // Control the infinite loop until it ends
@@ -74,6 +78,9 @@ public class MobileNode extends CKMobileNode {
         System.out.println("Qual a sua matricula?");
         this.matricula = keyboard.nextInt();
         keyboard.nextLine(); // consumes the \n
+
+        System.out.println("Qual o seu local?");
+        this.local = keyboard.nextLine();
 
         // Main loop that continues until the 'fim' variable is true
         while (!fim) {
@@ -217,9 +224,11 @@ public class MobileNode extends CKMobileNode {
         ObjectMapper objMapper = new ObjectMapper();
         ObjectNode contextObj = objMapper.createObjectNode();
 
+        LocalDate currentDate = LocalDate.now(this.zoneId);
+
         contextObj.put("matricula", this.matricula);
         contextObj.put("local", this.local);
-        contextObj.put("date", new Date().toString());
+        contextObj.put("date", currentDate.toString());
 
         try {
             SwapData ctxData = new SwapData();
