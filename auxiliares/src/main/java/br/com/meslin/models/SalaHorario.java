@@ -1,15 +1,44 @@
 package br.com.meslin.models;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 /**
  * Class to store the room and the time of a class
  */
-public class SalaHorario {
+public class SalaHorario {    
     public String sala;
     public String horario;
-    
-    public SalaHorario() {
+    private int diaDaSemana;
+    private LocalTime hora_comeco;
+    private LocalTime hora_fim;
+
+    public SalaHorario(){}
+
+    public void set_dados_horario(int duracao) 
+    {
+        this.diaDaSemana = this.getDiaDaSemana();
+        this.hora_comeco = LocalTime.parse(this.getTimeString(), DateTimeFormatter.ofPattern("HH:mm"));
+        this.hora_fim = hora_comeco.plusHours(duracao);
     }
 
+    public int getDayOfWeek() {
+        return diaDaSemana;
+    }
+
+    public LocalTime getHoraComeco() {
+        return hora_comeco;
+    }
+
+    public LocalTime getHoraFim() {
+        return hora_fim;
+    }
+
+    public boolean isClassTime(LocalTime currentTime) {
+        return (currentTime.equals(this.hora_comeco) || currentTime.isAfter(this.hora_comeco)) && (currentTime.isBefore(this.hora_fim) || currentTime.equals(this.hora_fim));
+    }
+    
     public String getTimeString() {
         String parts[] = this.horario.split(" ");
         String time = parts[1].strip();
@@ -41,7 +70,7 @@ public class SalaHorario {
         }
     }
 
-    public int getDayOfWeek() {
+    private int getDiaDaSemana() {
         String parts[] = this.horario.split(" ");
         String day = parts[0].strip();
 

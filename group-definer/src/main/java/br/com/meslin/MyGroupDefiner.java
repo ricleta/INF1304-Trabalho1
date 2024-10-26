@@ -125,12 +125,19 @@ public class MyGroupDefiner implements GroupSelection {
         System.out.println("#--------------# Receiving context #--------------#");
         
         String matricula = String.valueOf(contextInfo.get("matricula"));
-        String local = String.valueOf(contextInfo.get("local"));
-        String data = String.valueOf(contextInfo.get("date"));
+        matricula = matricula.replace("\"", "");
 
+        String local = String.valueOf(contextInfo.get("local"));
+        
+        int dia_da_semana = contextInfo.get("date").asInt();
+        
+        String hora = String.valueOf(contextInfo.get("hour"));
+        hora = hora.replace("\"", "");
+        
         System.out.println("Matricula: " + matricula);
         System.out.println("Local: " + local);
-        System.out.println("Data: " + data);
+        System.out.println("Dia da semana: " + dia_da_semana);
+        System.out.println("Hora: " + hora);
 
         User user = this.user_dto.getUser(Integer.parseInt(matricula));
         System.out.println("Nome: " + user.nome);
@@ -158,6 +165,13 @@ public class MyGroupDefiner implements GroupSelection {
             } catch (Exception e) {
                 logger.error("Exception occurred while getting group ID for turma: " + turma, e);
             }
+
+            try {
+                Set<Integer> groups = this.turma_dto.getGroupsFromStudentAttendance(turma, dia_da_semana, hora, local);
+                setOfGroups.addAll(groups);
+            } catch (Exception e) {
+                logger.error("Exception occurred while getting groups from student attendance in turma: " + turma, e);
+            }
         }
         
         try {
@@ -173,6 +187,8 @@ public class MyGroupDefiner implements GroupSelection {
         }
 
         System.out.println(setOfGroups);
+
+        
         return setOfGroups;
     }
 

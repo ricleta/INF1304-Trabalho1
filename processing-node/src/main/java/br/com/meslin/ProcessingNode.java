@@ -27,7 +27,7 @@ import ckafka.data.Swap;
 import ckafka.data.SwapData;
 import main.java.application.ModelApplication;
 
-public class ProcessingNode extends ModelApplication {
+public class ProcessingNode extends ModelApplication{
     private Swap swap;
     private ObjectMapper objectMapper;
     private ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
@@ -153,7 +153,7 @@ public class ProcessingNode extends ModelApplication {
                         
                         // Send message to the group
                         try {
-                            sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData(message))));
+                            sendRecord(createRecord("GroupMessageTopic", String.valueOf(turma.group), swap.SwapDataSerialization(createSwapData(message))));
                         } catch (Exception e) {
                             e.printStackTrace();
                             logger.error("Error SendGroupCastMessage", e);
@@ -168,7 +168,7 @@ public class ProcessingNode extends ModelApplication {
                         // Send message to the group
                         try 
                         {
-                            sendRecord(createRecord("GroupMessageTopic", turma.group, swap.SwapDataSerialization(createSwapData(message))));
+                            sendRecord(createRecord("GroupMessageTopic", String.valueOf(turma.group), swap.SwapDataSerialization(createSwapData(message))));
                         } catch (Exception e) 
                         {
                             e.printStackTrace();

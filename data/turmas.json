@@ -5,14 +5,16 @@
         "professor": "Alexandre",
         "duracao": 2,
         "group": 3000,
+        "group_attending": 16001,
+        "group_absent": 16002,
         "salas_horarios": [
             {
                 "sala": "LABGRAD",
-                "horario": "sexta 23:35"
+                "horario": "terca 9:00"
             },
             {
                 "sala": "T01",
-                "horario": "sexta 21:35"
+                "horario": "sabado 17:00"
             }
         ]
     },
@@ -23,6 +25,8 @@
         "professor": "Irineu",
         "duracao": 1,
         "group": 3100,
+        "group_attending": 16003,
+        "group_absent": 16004,
         "salas_horarios": [
             {
                 "sala": "L420",
@@ -41,6 +45,8 @@
         "professor": "Cleber",
         "duracao": 1,
         "group": 3101,
+        "group_attending": 16005,
+        "group_absent": 16006,
         "salas_horarios": [
             {
                 "sala": "L522",

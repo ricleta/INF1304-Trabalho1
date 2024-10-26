@@ -18,6 +18,7 @@ services:
     volumes:
       - /workspaces/INF1304-Trabalho1/data/users.json:/users.json
       - /workspaces/INF1304-Trabalho1/data/turmas.json:/turmas.json
+      - /workspaces/INF1304-Trabalho1/data/attendance_log.csv:/attendance_log.csv
     deploy:
       resources:
         limits:
@@ -39,6 +40,7 @@ services:
     volumes:
       - /workspaces/INF1304-Trabalho1/data/users.json:/users.json
       - /workspaces/INF1304-Trabalho1/data/turmas.json:/turmas.json
+      - /workspaces/INF1304-Trabalho1/data/attendance_log.csv:/attendance_log.csv
     deploy:
       resources:
         limits:

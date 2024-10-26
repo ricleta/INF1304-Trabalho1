@@ -14,7 +14,11 @@ public class Turma {
 
     public int duracao;
 
-    public String group;
+    public int group;
+
+    public int group_attending;
+
+    public int group_absent;
     
     public SalaHorario[] salas_horarios;
 

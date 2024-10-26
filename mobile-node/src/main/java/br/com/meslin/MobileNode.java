@@ -2,6 +2,7 @@ package br.com.meslin;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +11,9 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.Date;
+import java.util.Properties;
+import java.io.FileInputStream;
+import java.io.IOException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -225,10 +229,12 @@ public class MobileNode extends CKMobileNode {
         ObjectNode contextObj = objMapper.createObjectNode();
 
         LocalDate currentDate = LocalDate.now(this.zoneId);
+        LocalTime currentHour = LocalTime.now(this.zoneId).withSecond(0).withNano(0);
 
         contextObj.put("matricula", this.matricula);
         contextObj.put("local", this.local);
-        contextObj.put("date", currentDate.toString());
+        contextObj.put("date", currentDate.getDayOfWeek().toString());
+        contextObj.put("hour", currentHour.toString()); 
 
         try {
             SwapData ctxData = new SwapData();

@@ -4,6 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.FileInputStream;
 import java.io.IOException;
 import org.apache.commons.io.IOUtils;
+import java.util.Set;
+import java.util.HashSet;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
+import br.com.meslin.models.SalaHorario;
 import br.com.meslin.models.Turma;
 
 /**
@@ -28,7 +35,6 @@ public class TurmaJson {
             
             // Read the JSON array directly into a Turma array
             turmas = objectMapper.readValue(text, Turma[].class);
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -46,6 +52,12 @@ public class TurmaJson {
 
         // Load the classes from the JSON file
         this.turma_list = loadTurmasFromFile(jsonFilePath);
+
+        for (Turma turma : this.turma_list) {
+            for (SalaHorario salaHorario : turma.salas_horarios) {
+                salaHorario.set_dados_horario(turma.duracao);
+            }
+        }
     }
 
     /** 
@@ -53,7 +65,6 @@ public class TurmaJson {
      * @param disciplina_turma class name
      * @return the class with the given name
      * @return null if the class is not found
-     * @deprecated use getGroupIDFromTurma instead
     */
     public Turma getTurma(String disciplina_turma) {
         String[] parts = disciplina_turma.split(" ");
@@ -88,17 +99,50 @@ public class TurmaJson {
          * 3100 -> INF1748 - 3WA
          * 3101 -> INF1748 - 3WB 
         */
-        if (id_disciplina.equals("inf1304") && id_turma.equals("3WA")) {
-            return 3000;
-        }
-        if (id_disciplina.equals("inf1748") && id_turma.equals("3WA")) {
-            return 3100;
-        }
-        if (id_disciplina.equals("inf1748") && id_turma.equals("3WB")) {
-            return 3101;
+        for (Turma turma : this.turma_list) {
+            if (turma.id_turma.equals(id_turma) && turma.disciplina.equals(id_disciplina)) {
+                return turma.group;
+            }
         }
 
         return -1;
+    }
+
+    public Turma getTurmaFromGroupID(int groupID) {
+        for (Turma turma : this.turma_list) {
+            if (turma.group == groupID) {
+                return turma;
+            }
+        }
+
+        return null;
+    }
+
+    public Set<Integer> getGroupsFromStudentAttendance(String nome_turma, int dayOfWeek, String hour, String location)
+    {
+        Set<Integer> groups = new HashSet<Integer>();
+        Turma turma = getTurma(nome_turma);
+        LocalTime currentTime = LocalTime.parse(hour, DateTimeFormatter.ofPattern("HH:mm")).withSecond(0).withNano(0);
+
+        for (SalaHorario salaHorario : turma.salas_horarios) 
+        {
+            System.out.println("Sala: " + salaHorario.sala + " | Horario: " + salaHorario.horario);
+            if (salaHorario.getDayOfWeek() == dayOfWeek) {
+                System.out.println("Dia certo! " + dayOfWeek);
+                if (salaHorario.isClassTime(currentTime)) {
+                    System.out.println("Hora certa! " + currentTime);
+                    if (salaHorario.sala.equals(location)) {
+                        System.out.println("Local certo! " + location);
+                        groups.add(turma.group_attending);
+                    } else {
+                        System.out.println("Local errado! " + location);
+                        groups.add(turma.group_absent);
+                    }
+                }
+            }
+        }
+
+        return groups;
     }
 
     public Turma[] getTurmas() {
