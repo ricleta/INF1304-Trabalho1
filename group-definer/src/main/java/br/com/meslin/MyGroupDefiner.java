@@ -128,7 +128,8 @@ public class MyGroupDefiner implements GroupSelection {
         matricula = matricula.replace("\"", "");
 
         String local = String.valueOf(contextInfo.get("local"));
-        
+        local = local.replace("\"", "");
+
         int dia_da_semana = contextInfo.get("date").asInt();
         
         String hora = String.valueOf(contextInfo.get("hour"));
@@ -136,7 +137,7 @@ public class MyGroupDefiner implements GroupSelection {
         
         System.out.println("Matricula: " + matricula);
         System.out.println("Local: " + local);
-        System.out.println("Dia da semana: " + dia_da_semana);
+        System.out.println("Dia da semana: " + String.valueOf(contextInfo.get("date")));
         System.out.println("Hora: " + hora);
 
         User user = this.user_dto.getUser(Integer.parseInt(matricula));
