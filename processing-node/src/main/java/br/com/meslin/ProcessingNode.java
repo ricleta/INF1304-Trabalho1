@@ -256,16 +256,16 @@ public class ProcessingNode extends ModelApplication{
         }
     }
 
-     // Method to read the log file and count group occurrences
-     public Map<String, Map<Integer, Map<String, Integer>>> countTimeInClass() {
-        Map<String, Map<Integer, Map<String, Integer>>> userGroupCount = new HashMap<>();
+    // Method to read the log file and count group occurrences
+    public Map<String, Map<String, Map<String, Integer>>> countTimeInClass() {
+        Map<String, Map<String, Map<String, Integer>>> userGroupCount = new HashMap<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(GROUPS_LOG_FILE_PATH))) {
             String line;
 
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                int diaDaSemana = Integer.parseInt(parts[0]);
+                String date = parts[0];
                 String hora = parts[1];
                 String matricula = parts[2];
                 String groupsString = parts[3];
@@ -275,11 +275,25 @@ public class ProcessingNode extends ModelApplication{
 
                 // Initialize nested maps
                 userGroupCount.putIfAbsent(matricula, new HashMap<>());
-                userGroupCount.get(matricula).putIfAbsent(diaDaSemana, new HashMap<>());
+                userGroupCount.get(matricula).putIfAbsent(date, new HashMap<>());
 
                 for (String group : groups) {
-                    userGroupCount.get(matricula).get(diaDaSemana).put(group, 
-                        userGroupCount.get(matricula).get(diaDaSemana).getOrDefault(group, 0) + 1);
+                    try {
+                        Turma turma = turma_dto.getTurma(Integer.parseInt(group));
+                        String attendingGroup = String.valueOf(turma.group_attending);
+                        String turmaGroup = String.valueOf(turma.group);
+
+                        userGroupCount.get(matricula).get(date).putIfAbsent(turmaGroup, 0);
+
+                        // Check if the current group corresponds to the attending group
+                        if (group.equals(attendingGroup)) {
+                            // Update the userGroupCount using turma.group as the key
+                            userGroupCount.get(matricula).get(date).put(turmaGroup, 
+                                userGroupCount.get(matricula).get(date).get(turmaGroup) + 1);
+                        }   
+                    } catch (Exception e) {
+                        System.err.println("Error getting turma by group: " + e.getMessage());
+                    }
                 }
             }
         } catch (IOException e) {
@@ -290,33 +304,40 @@ public class ProcessingNode extends ModelApplication{
     }
 
     // Method to log attendance based on group counts and class duration
-    public void logAttendance(Map<String, Map<Integer, Map<String, Integer>>> userGroupCount) 
+    public void logAttendance(Map<String, Map<String, Map<String, Integer>>> userGroupCount) 
     {
-        String currentDate = LocalDate.now(zoneId).toString();
+        // String currentDate = LocalDate.now(zoneId).toString();
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(ATTENDANCE_LOG_FILE_PATH, true))) 
         {
             for (String matricula : userGroupCount.keySet()) 
             {
-                Map<Integer, Map<String, Integer>> dayMap = userGroupCount.get(matricula);
+                Map<String, Map<String, Integer>> dateMap = userGroupCount.get(matricula);
                 
-                for (Integer diaDaSemana : dayMap.keySet()) 
+                for (String date : dateMap.keySet()) 
                 {
-                    Map<String, Integer> groupCounts = dayMap.get(diaDaSemana);
+                    Map<String, Integer> groupCounts = dateMap.get(date);
                     
                     for (Map.Entry<String, Integer> entry : groupCounts.entrySet()) 
                     {
                         String groupId = entry.getKey();
                         int count = entry.getValue();
-                        Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
-                        int duration = turma.duracao * 60; // Assume duration is in minutes
+                        
+                        try
+                        {
+                            Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
+                            int duration = turma.duracao * 60; // Assume duration is in minutes
 
-                        // Check if count is at least 80% of the duration
-                        if (count >= 0.8 * duration) {
-                            writer.println(currentDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Present");
-                        } else {
-                            writer.println(currentDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Absent");
+                            // Check if count is at least 80% of the duration
+                            if (count >= 0.8 * duration) {
+                                writer.println(date + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Present," + count);
+                            } else {
+                                writer.println(date + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Absent," + count);
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error getting turma by attending group: " + e.getMessage());
                         }
+                        
                     }
                 }
             }

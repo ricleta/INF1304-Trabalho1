@@ -233,7 +233,7 @@ public class MobileNode extends CKMobileNode {
 
         contextObj.put("matricula", this.matricula);
         contextObj.put("local", this.local);
-        contextObj.put("date", currentDate.getDayOfWeek().getValue());
+        contextObj.put("date", currentDate.toString());
         contextObj.put("hour", currentHour.toString()); 
 
         try {

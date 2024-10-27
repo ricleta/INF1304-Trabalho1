@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -131,15 +132,22 @@ public class MyGroupDefiner implements GroupSelection {
 
         String local = String.valueOf(contextInfo.get("local"));
         local = local.replace("\"", "");
-
-        int dia_da_semana = contextInfo.get("date").asInt();
+        
+        LocalDate date;
+        if (contextInfo.get("date").asText().equals("null")) {
+            date = LocalDate.now();
+        } else {
+            date = LocalDate.parse(contextInfo.get("date").asText());
+        }
+        
+        int dia_da_semana = date.getDayOfWeek().getValue();
         
         String hora = String.valueOf(contextInfo.get("hour"));
         hora = hora.replace("\"", "");
         
         System.out.println("Matricula: " + matricula);
         System.out.println("Local: " + local);
-        System.out.println("Dia da semana: " + String.valueOf(contextInfo.get("date")));
+        System.out.println("Data: " + date);
         System.out.println("Hora: " + hora);
 
         User user = this.user_dto.getUser(Integer.parseInt(matricula));
@@ -171,8 +179,12 @@ public class MyGroupDefiner implements GroupSelection {
 
             try {
                 Set<Integer> groups = this.turma_dto.getGroupsFromStudentAttendance(turma, dia_da_semana, hora, local);
-                setOfGroups.addAll(groups);
-                this.logInfo(matricula, dia_da_semana, hora, groups);
+                
+                if (!groups.isEmpty()) 
+                {
+                    setOfGroups.addAll(groups);
+                    this.logInfo(matricula, date.toString(), hora, groups);
+                }
             } catch (Exception e) {
                 logger.error("Exception occurred while getting groups from student attendance in turma: " + turma, e);
             }
@@ -194,14 +206,14 @@ public class MyGroupDefiner implements GroupSelection {
         return setOfGroups;
     }
 
-    private void logInfo(String matricula, int diaDaSemana, String hora, Set<Integer> setOfGroups) 
+    private void logInfo(String matricula, String data, String hora, Set<Integer> setOfGroups) 
     {
         try (PrintWriter writer = new PrintWriter(new FileWriter(this.logFilePath, true))) 
         {   
             // Convert setOfGroups to a comma-separated string
             String groupsString = setOfGroups.isEmpty() ? "None" : setOfGroups.toString().replaceAll("[\\[\\]]", "");
         
-            writer.println(diaDaSemana + "," + hora + "," + matricula + "," + groupsString);
+            writer.println(data + "," + hora + "," + matricula + "," + groupsString);
         } catch (IOException e) {
             logger.error("Error writing to log file", e);
         }
