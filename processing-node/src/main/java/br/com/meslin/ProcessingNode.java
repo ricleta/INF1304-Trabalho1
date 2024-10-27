@@ -13,6 +13,13 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
@@ -30,7 +37,10 @@ import main.java.application.ModelApplication;
 public class ProcessingNode extends ModelApplication{
     private Swap swap;
     private ObjectMapper objectMapper;
-    private ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
+    private static final ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
+    private static final String GROUPS_LOG_FILE_PATH = "/groups_log.csv";
+    private static final String ATTENDANCE_LOG_FILE_PATH = "/attendance_log.csv";
+
 
     // Valid user input options
     private static final String OPTION_GROUPCAST = "G";
@@ -79,6 +89,7 @@ public class ProcessingNode extends ModelApplication{
 
         while(!fim) {
             this.start_scheduling();
+            this.logAttendance(this.countTimeInClass());
             // System.out.print("Message to (G)roup or (I)ndividual (P)rocessing Node (Z to end)? ");
             // String linha = keyboard.nextLine().trim().toUpperCase();
             // System.out.printf("Your option was %s.", linha);
@@ -123,8 +134,8 @@ public class ProcessingNode extends ModelApplication{
     }
     
     public void check_for_classes(Turma turma) {
-        LocalDate currentDate = LocalDate.now(this.zoneId);
-        LocalTime currentTime = LocalTime.now(this.zoneId).withSecond(0).withNano(0);
+        LocalDate currentDate = LocalDate.now(zoneId);
+        LocalTime currentTime = LocalTime.now(zoneId).withSecond(0).withNano(0);
     
         int dayOfWeek = currentDate.getDayOfWeek().getValue();
     
@@ -181,14 +192,6 @@ public class ProcessingNode extends ModelApplication{
                 System.out.println("Error parsing schedule: " + salaHorario + " - " + e.getMessage());
             }
         }
-    }
-
-    public void get_presence(String turma) {   
-        User[] user_list = this.user_dto.getUserList();
-
-        // for (User user: user_list) {
-        //     if ()
-        // }
     }
 
     /**
@@ -250,6 +253,75 @@ public class ProcessingNode extends ModelApplication{
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Error SendGroupCastMessage", e);
+        }
+    }
+
+     // Method to read the log file and count group occurrences
+     public Map<String, Map<Integer, Map<String, Integer>>> countTimeInClass() {
+        Map<String, Map<Integer, Map<String, Integer>>> userGroupCount = new HashMap<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(GROUPS_LOG_FILE_PATH))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                int diaDaSemana = Integer.parseInt(parts[0]);
+                String hora = parts[1];
+                String matricula = parts[2];
+                String groupsString = parts[3];
+
+                // Split the group string into individual group IDs
+                String[] groups = groupsString.equals("None") ? new String[0] : groupsString.split(", ");
+
+                // Initialize nested maps
+                userGroupCount.putIfAbsent(matricula, new HashMap<>());
+                userGroupCount.get(matricula).putIfAbsent(diaDaSemana, new HashMap<>());
+
+                for (String group : groups) {
+                    userGroupCount.get(matricula).get(diaDaSemana).put(group, 
+                        userGroupCount.get(matricula).get(diaDaSemana).getOrDefault(group, 0) + 1);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading log file: " + e.getMessage());
+        }
+
+        return userGroupCount;
+    }
+
+    // Method to log attendance based on group counts and class duration
+    public void logAttendance(Map<String, Map<Integer, Map<String, Integer>>> userGroupCount) 
+    {
+        String currentDate = LocalDate.now(zoneId).toString();
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(ATTENDANCE_LOG_FILE_PATH, true))) 
+        {
+            for (String matricula : userGroupCount.keySet()) 
+            {
+                Map<Integer, Map<String, Integer>> dayMap = userGroupCount.get(matricula);
+                
+                for (Integer diaDaSemana : dayMap.keySet()) 
+                {
+                    Map<String, Integer> groupCounts = dayMap.get(diaDaSemana);
+                    
+                    for (Map.Entry<String, Integer> entry : groupCounts.entrySet()) 
+                    {
+                        String groupId = entry.getKey();
+                        int count = entry.getValue();
+                        Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
+                        int duration = turma.duracao * 60; // Assume duration is in minutes
+
+                        // Check if count is at least 80% of the duration
+                        if (count >= 0.8 * duration) {
+                            writer.println(currentDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Present");
+                        } else {
+                            writer.println(currentDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Absent");
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to attendance log: " + e.getMessage());
         }
     }
 }

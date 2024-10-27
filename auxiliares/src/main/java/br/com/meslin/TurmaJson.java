@@ -80,6 +80,15 @@ public class TurmaJson {
         return null;
     }
 
+    public Turma getTurma(int groupID) {
+        for (Turma turma : this.turma_list) {
+            if (turma.group == groupID || turma.group_attending == groupID || turma.group_absent == groupID) {
+                return turma;
+            }
+        }
+        return null;
+    }
+
     /**
      * Get the group ID from the class name
      * @param disciplina_turma
@@ -90,9 +99,6 @@ public class TurmaJson {
         String[] parts = disciplina_turma.split(" ");
         String id_disciplina = parts[0];
         String id_turma = parts[1];
-
-        System.out.println("id_disciplina: " + id_disciplina);
-        System.out.println("id_turma: " + id_turma);
 
         /* 
          * 3000 -> INF1304 - 3WA
@@ -108,16 +114,6 @@ public class TurmaJson {
         return -1;
     }
 
-    public Turma getTurmaFromGroupID(int groupID) {
-        for (Turma turma : this.turma_list) {
-            if (turma.group == groupID) {
-                return turma;
-            }
-        }
-
-        return null;
-    }
-
     public Set<Integer> getGroupsFromStudentAttendance(String nome_turma, int dayOfWeek, String hour, String location)
     {
         Set<Integer> groups = new HashSet<Integer>();
@@ -126,16 +122,18 @@ public class TurmaJson {
 
         for (SalaHorario salaHorario : turma.salas_horarios) 
         {
-            System.out.println("Sala: " + salaHorario.sala + " | Horario: " + salaHorario.horario);
-            if (salaHorario.getDayOfWeek() == dayOfWeek) {
-                System.out.println("Dia certo! " + dayOfWeek);
-                if (salaHorario.isClassTime(currentTime)) {
-                    System.out.println("Hora certa! " + currentTime);
-                    if (salaHorario.sala.equals(location)) {
-                        System.out.println("Local certo! " + location);
+            // System.out.println("Checking " + salaHorario.sala + " " + salaHorario.horario);
+            if (salaHorario.getDayOfWeek() == dayOfWeek) 
+            {
+                // System.out.println("Day of week matches | Is class time = " + salaHorario.isClassTime(currentTime));
+                if (salaHorario.isClassTime(currentTime)) 
+                {
+                    // System.out.println(turma.disciplina + "is in class");
+                    if (salaHorario.sala.equals(location)) 
+                    {
+                        // System.out.println("Student is in class");
                         groups.add(turma.group_attending);
                     } else {
-                        System.out.println("Local errado! " + location);
                         groups.add(turma.group_absent);
                     }
                 }
