@@ -10,11 +10,11 @@
         "salas_horarios": [
             {
                 "sala": "LABGRAD",
-                "horario": "domingo 15:00"
+                "horario": "segunda 21:30"
             },
             {
                 "sala": "T01",
-                "horario": "quinta 9:00"
+                "horario": "segunda 22:50"
             }
         ]
     },

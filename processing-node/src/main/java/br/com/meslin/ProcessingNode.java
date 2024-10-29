@@ -20,11 +20,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays; 
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.meslin.Util;
 import br.com.meslin.models.Turma;
 import br.com.meslin.models.SalaHorario;
 import br.com.meslin.models.User;
@@ -37,9 +41,11 @@ import main.java.application.ModelApplication;
 public class ProcessingNode extends ModelApplication{
     private Swap swap;
     private ObjectMapper objectMapper;
+    //private static final Logger logger = LoggerFactory.getLogger(ProcessingNode.class);
     private static final ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
     private static final String GROUPS_LOG_FILE_PATH = "/groups_log.csv";
     private static final String ATTENDANCE_LOG_FILE_PATH = "/attendance_log.csv";
+    private static final String PRESENCE_TABLE_PATH = "/presence_table.csv";
 
 
     // Valid user input options
@@ -48,11 +54,15 @@ public class ProcessingNode extends ModelApplication{
     private static final String OPTION_PN = "P";
     private static final String OPTION_EXIT = "Z";
 
+    // Valid commands
+    private static final String COMMAND_REGISTER_PRESENCE = "Register";
+
     // The variable cannot be local because it is being used in a lambda function
     // Control of the eternal loop until it ends
     private UserJson user_dto = new UserJson();
     private TurmaJson turma_dto = new TurmaJson();
     private boolean fim = false;
+    Map<String, Consumer<String[]>> commandMap = new HashMap<>();
 
     /**
      * Constructor
@@ -77,13 +87,14 @@ public class ProcessingNode extends ModelApplication{
      */
     public void runPN(Scanner keyboard) {
         Map<String, Consumer<Scanner>> optionsMap = new HashMap<>();
-
         // Map options to corresponding functions
         optionsMap.put(OPTION_GROUPCAST, this::sendGroupcastMessage);
         optionsMap.put(OPTION_UNICAST, this::sendUnicastMessage);
 //        optionsMap.put(OPTION_PN, this::sendMessageToPN);
         optionsMap.put(OPTION_EXIT, scanner -> fim = true);
 
+        // Map commands to corresponding functions
+        this.commandMap.put(COMMAND_REGISTER_PRESENCE, params -> registerPresence(params));
         // Timer timer = new Timer();
         // timer.scheduleAtFixedRate(check_for_classes(), 0, 60000);
 
@@ -194,17 +205,76 @@ public class ProcessingNode extends ModelApplication{
         }
     }
 
+    public void registerPresence(String[] params) {
+        Turma turmaObj = this.turma_dto.getTurma(String.format("%s %s", params[0], params[1]));
+        String classDate = params[2];
+        Float threshold = Float.parseFloat(params[3]);
+        Map<String, Map<String, Map<String,Integer>>> userGroupCount = this.countTimeInClass();
+        try (PrintWriter writer = new PrintWriter(new FileWriter(PRESENCE_TABLE_PATH, true))) 
+        {
+            for (String matricula : userGroupCount.keySet()) 
+            {
+                Map<String, Map<String, Integer>> dateMap = userGroupCount.get(matricula);
+                System.out.println(classDate);
+                System.out.println(dateMap);
+                Map<String, Integer> groupCounts = dateMap.get(classDate);
+                
+                for (Map.Entry<String, Integer> entry : groupCounts.entrySet()) 
+                {
+                    String groupId = entry.getKey();
+                    int count = entry.getValue();
+                    System.out.println(groupId);
+                    try
+                    {
+                        Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
+                        if (turma.group == turmaObj.group) {    
+                            int duration = turma.duracao * 60; // Assume duration is in minutes
+
+                            // Check if count is at least 80% of the duration
+                            if (count >= threshold * duration) {
+                                System.out.println("PRESENTE");
+                                writer.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",PRESENTE");
+                            } else {
+                                System.out.println("FALTA");
+                                writer.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",FALTA");
+                                System.out.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",FALTA");
+                                writer.println("FALTA");
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error getting turma by attending group: " + e.getMessage());
+                    }
+                    
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to presence_table: " + e.getMessage());
+        }
+    }
+
+    private void executeCommand(String fullCommand) {
+        String[] args = fullCommand.split(" ");
+        String command = args[0];
+        String[] params = Arrays.copyOfRange(args, 1, args.length);
+        if (this.commandMap.containsKey(command)) {
+            this.commandMap.get(command).accept(params);
+        } else {
+            System.out.println("Invalid command");
+        }
+    }
+
     /**
      * 
      */
     @Override
     public void recordReceived(ConsumerRecord record) {
-        System.out.println(String.format("Message received from %s", record.key()));        
+        System.out.println(String.format("Command received from %s", record.key()));        
         try {
             SwapData data = swap.SwapDataDeserialization((byte[]) record.value());
             String text = new String(data.getMessage(), StandardCharsets.UTF_8);
             User[] user_list = this.user_dto.getUserList();
-            System.out.println("Message received = " + text);
+            System.out.println("Command received = " + text);
+            executeCommand(text);
         } catch (Exception e) {
             e.printStackTrace();
         }

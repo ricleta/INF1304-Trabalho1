@@ -34,6 +34,7 @@ public class MobileNode extends CKMobileNode {
     private static final String OPTION_GROUPCAST = "G";
     private static final String OPTION_UNICAST = "I";
     private static final String OPTION_PN = "P";
+    private static final String OPTION_REGISTER = "R";
     private static final String OPTION_EXIT = "Z";
     private static final String OPTION_UPDATE_LOCATION = "T";
 
@@ -73,10 +74,11 @@ public class MobileNode extends CKMobileNode {
 
         // Maps options to corresponding functions
         optionsMap.put(OPTION_UNICAST, this::sendUnicastMessage);
-        optionsMap.put(OPTION_PN, this::sendMessageToPN);
+        optionsMap.put(OPTION_PN, this::enterMessageToPN);
         optionsMap.put(OPTION_GROUPCAST, this::sendGroupcastMessage);
         optionsMap.put(OPTION_UPDATE_LOCATION, this::updateLocation);
         optionsMap.put(OPTION_EXIT, scanner -> fim = true);
+        optionsMap.put(OPTION_REGISTER, this::registerClass);
 
         // Requests the user's registration number
         System.out.println("Qual a sua matricula?");
@@ -169,16 +171,39 @@ public class MobileNode extends CKMobileNode {
     /**
      * Sends message to the stationary Processing Node
      */
-    private void sendMessageToPN(Scanner keyboard) {
+    private void enterMessageToPN(Scanner keyboard) {
         System.out.print("Enter the message: ");
         String messageText = keyboard.nextLine();
 
+        this.sendMessageToPN(messageText);
+    }
+
+    private void sendMessageToPN(String messageText) {
         ApplicationMessage message = createDefaultApplicationMessage();
         SwapData data = new SwapData();
         data.setMessage(messageText.getBytes(StandardCharsets.UTF_8));
         data.setTopic("AppModel");
         message.setContentObject(data);
         sendMessageToGateway(message);
+    }
+
+    private void registerClass(Scanner keyboard) {
+        System.out.print("Enter subject: ");
+        String subjectText = keyboard.nextLine();
+
+        System.out.print("Enter class: ");
+        String classText = keyboard.nextLine();
+
+        System.out.println("Enter class date (yyyy-mm-dd): ");
+        String dateText = keyboard.nextLine();
+
+        System.out.print("Enter threshold: ");
+        String thresholdText = keyboard.nextLine();
+
+        String command = "Register ";
+        command = command.concat(subjectText).concat(" ").concat(classText).concat(" ").concat(dateText).concat(" ").concat(thresholdText);
+
+        this.sendMessageToPN(command);
     }
 
     @Override
