@@ -91,7 +91,7 @@ public class MobileNode extends CKMobileNode {
         // Main loop that continues until the 'fim' variable is true
         while (!fim) {
             // Requests the user's option
-            System.out.print("(T) Change location | (Z) to finish)? ");
+            System.out.print("(T) Change location | (R) Register class | (Z) to finish)? ");
             String linha = keyboard.nextLine().trim().toUpperCase();
             System.out.printf("Your option was %s. ", linha);
 

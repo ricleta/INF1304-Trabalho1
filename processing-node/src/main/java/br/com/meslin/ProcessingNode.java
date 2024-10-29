@@ -193,42 +193,82 @@ public class ProcessingNode extends ModelApplication{
         }
     }
 
+    /**
+     * Registers the presence of students in a class based on the provided parameters.
+     *
+     * @param params An array of strings containing the following parameters:
+     *               - params[0]: The class identifier part 1.
+     *               - params[1]: The class identifier part 2.
+     *               - params[2]: The date of the class.
+     *               - params[3]: The threshold for presence as a float (e.g., 0.8 for 80%).
+     *
+     * This method retrieves the class information using the provided identifiers,
+     * calculates the time each student spent in the class, and writes the presence
+     * information to a file. A student is marked as "PRESENTE" if their attendance
+     * time meets or exceeds the threshold percentage of the class duration; otherwise,
+     * they are marked as "FALTA".
+     *
+     * The presence information is written to a file specified by the constant
+     * PRESENCE_TABLE_PATH. Each line in the file contains the class date, class
+     * identifier, student matricula, and presence status.
+     *
+     * @throws IOException If an I/O error occurs while writing to the presence table file.
+     */
     public void registerPresence(String[] params) {
+        // Retrieve the Turma object based on the provided class identifiers
         Turma turmaObj = this.turma_dto.getTurma(String.format("%s %s", params[0], params[1]));
+        
+        // Extract the class date and threshold from the parameters
         String classDate = params[2];
         Float threshold = Float.parseFloat(params[3]);
+        
+        // Count the time each user is in different classes
         Map<String, Map<String, Map<String,Integer>>> userGroupCount = this.countTimeInClass();
+        
+        // Try-with-resources to automatically close the PrintWriter
         try (PrintWriter writer = new PrintWriter(new FileWriter(PRESENCE_TABLE_PATH, true))) 
         {
+            // Iterate through each student ID in the userGroupCount map
             for (String matricula : userGroupCount.keySet()) 
             {
-                Map<String, Map<String, Integer>> dateMap = userGroupCount.get(matricula);
-                Map<String, Integer> groupCounts = dateMap.get(classDate);
+            // Get the map for the specific student's attendance records
+            Map<String, Map<String, Integer>> dateMap = userGroupCount.get(matricula);
+            
+            // Get the map of group attendance counts for the specified class date
+            Map<String, Integer> groupCounts = dateMap.get(classDate);
+            
+            // Iterate through each group and its attendance count
+            for (Map.Entry<String, Integer> entry : groupCounts.entrySet()) 
+            {
+                String groupId = entry.getKey(); // Get the group ID
+                int count = entry.getValue(); // Get the attendance count
                 
-                for (Map.Entry<String, Integer> entry : groupCounts.entrySet()) 
+                try
                 {
-                    String groupId = entry.getKey();
-                    int count = entry.getValue();
-                    try
-                    {
-                        Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
-                        if (turma.group == turmaObj.group) {    
-                            int duration = turma.duracao * 60; // Assume duration is in minutes
+                // Retrieve the Turma object based on the group ID
+                Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
+                
+                // Check if the group matches the specified class group
+                if (turma.group == turmaObj.group) {    
+                    int duration = turma.duracao * 60; // Assume duration is in minutes
 
-                            // Check if count is at least 80% of the duration
-                            if (count >= threshold * duration) {
-                                writer.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",PRESENTE");
-                            } else {
-                                writer.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",FALTA");
-                            }
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error getting turma by attending group: " + e.getMessage());
+                    // Check if the attendance count meets or exceeds the threshold
+                    if (count >= threshold * duration) {
+                    // Log as PRESENTE if attendance is sufficient
+                    writer.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",PRESENTE");
+                    } else {
+                    // Log as FALTA if attendance is insufficient
+                    writer.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",FALTA");
                     }
-                    
+                }
+                } catch (Exception e) {
+                // Log an error if there is an issue retrieving the Turma
+                System.err.println("Error getting turma by attending group: " + e.getMessage());
                 }
             }
+            }
         } catch (IOException e) {
+            // Log an error if there is an issue writing to the presence table
             System.err.println("Error writing to presence_table: " + e.getMessage());
         }
     }

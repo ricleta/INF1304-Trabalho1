@@ -3,18 +3,18 @@
         "id_turma": "3WA",
         "disciplina": "inf1304",
         "professor": "Alexandre",
-        "duracao": 1,
+        "duracao": 2,
         "group": 3000,
         "group_attending": 16001,
         "group_absent": 16002,
         "salas_horarios": [
             {
                 "sala": "LABGRAD",
-                "horario": "terca 7:20"
+                "horario": "terca 9:00"
             },
             {
                 "sala": "T01",
-                "horario": "segunda 22:50"
+                "horario": "quinta 9:00"
             }
         ]
     },
