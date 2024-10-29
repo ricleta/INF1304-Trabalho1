@@ -26,6 +26,67 @@ import ckafka.data.Swap;
 import main.java.ckafka.GroupDefiner;
 import main.java.ckafka.GroupSelection;
 
+/**
+ * MyGroupDefiner is a class that implements the GroupSelection interface.
+ * It is responsible for defining and managing groups based on various criteria.
+ * This class interacts with user and turma (class) data to determine group assignments.
+ * It also logs information about group assignments to a specified log file.
+ * 
+ * <p>Usage example:</p>
+ * <pre>
+ * {@code
+ * MyGroupDefiner myGroupDefiner = new MyGroupDefiner();
+ * Set<Integer> groups = myGroupDefiner.getNodesGroupByContext(contextInfo);
+ * }
+ * </pre>
+ * 
+ * <p>Groups managed by this class include:</p>
+ * <ul>
+ *   <li>6000 -> Professors</li>
+ *   <li>6001 -> Students</li>
+ *   <li>3000 -> INF1304 - 3WA</li>
+ *   <li>3100 -> INF1748 - 3WA</li>
+ *   <li>3101 -> INF1748 - 3WB</li>
+ *   <li>16500 -> T01</li>
+ *   <li>16501 -> LABGRAD</li>
+ *   <li>16502 -> L420</li>
+ *   <li>16503 -> L522</li>
+ *   <li>16001 -> INF1304 - 3WA - PRESENT</li>
+ *   <li>16002 -> INF1304 - 3WA - ABSENT</li>
+ *   <li>16003 -> INF1748 - 3WA - PRESENT</li>
+ *   <li>16004 -> INF1748 - 3WA - ABSENT</li>
+ *   <li>16005 -> INF1748 - 3WB - PRESENT</li>
+ *   <li>16006 -> INF1748 - 3WB - ABSENT</li>
+ * </ul>
+ * 
+ * <p>Methods:</p>
+ * <ul>
+ *   <li>{@link #groupsIdentification()} - Returns a set of all group IDs managed by this class.</li>
+ *   <li>{@link #getNodesGroupByContext(ObjectNode)} - Returns a set of group IDs related to the provided context information.</li>
+ *   <li>{@link #logInfo(String, String, String, Set)} - Logs information about a student's group assignment.</li>
+ *   <li>{@link #kafkaConsumerPrefix()} - Returns the Kafka consumer prefix.</li>
+ *   <li>{@link #kafkaProducerPrefix()} - Returns the Kafka producer prefix.</li>
+ * </ul>
+ * 
+ * <p>Dependencies:</p>
+ * <ul>
+ *   <li>{@link UserJson} - For reading and manipulating user data.</li>
+ *   <li>{@link TurmaJson} - For reading and manipulating turma (class) data.</li>
+ *   <li>{@link ObjectMapper} - For JSON processing.</li>
+ *   <li>{@link Swap} - For swapping data.</li>
+ *   <li>{@link GroupDefiner} - For defining groups.</li>
+ * </ul>
+ * 
+ * <p>Logging:</p>
+ * This class uses SLF4J for logging. Log entries are written to a file specified by {@code logFilePath}.
+ * 
+ * @see GroupSelection
+ * @see UserJson
+ * @see TurmaJson
+ * @see ObjectMapper
+ * @see Swap
+ * @see GroupDefiner
+ */
 public class MyGroupDefiner implements GroupSelection {
     /** Logger */
     final Logger logger = LoggerFactory.getLogger(GroupDefiner.class);
@@ -124,86 +185,109 @@ public class MyGroupDefiner implements GroupSelection {
      * @return set with all the groups related to this contextInfo
      */
     public Set<Integer> getNodesGroupByContext(ObjectNode contextInfo) {
+        // Initialize a set to store group IDs
         Set<Integer> setOfGroups = new HashSet<Integer>();
         System.out.println("#--------------# Receiving context #--------------#");
         
+        // Extract the matricula (student ID) from contextInfo
         String matricula = String.valueOf(contextInfo.get("matricula"));
-        matricula = matricula.replace("\"", "");
+        matricula = matricula.replace("\"", ""); // Remove any quotes
 
+        // Extract the location from contextInfo
         String local = String.valueOf(contextInfo.get("local"));
-        local = local.replace("\"", "");
+        local = local.replace("\"", ""); // Remove any quotes
         
+        // Parse the date from contextInfo or use the current date if null
         LocalDate date;
         if (contextInfo.get("date").asText().equals("null")) {
-            date = LocalDate.now();
+            date = LocalDate.now(); // Use today's date if no date is provided
         } else {
-            date = LocalDate.parse(contextInfo.get("date").asText());
+            date = LocalDate.parse(contextInfo.get("date").asText()); // Parse the provided date
         }
         
+        // Get the day of the week as an integer (1 = Monday, 7 = Sunday)
         int dia_da_semana = date.getDayOfWeek().getValue();
         
+        // Extract the hour from contextInfo
         String hora = String.valueOf(contextInfo.get("hour"));
-        hora = hora.replace("\"", "");
+        hora = hora.replace("\"", ""); // Remove any quotes
         
+        // Log the extracted information for debugging
         System.out.println("Matricula: " + matricula);
         System.out.println("Local: " + local);
         System.out.println("Data: " + date);
         System.out.println("Hora: " + hora);
 
+        // Retrieve the User object based on matricula
         User user = this.user_dto.getUser(Integer.parseInt(matricula));
-        System.out.println("Nome: " + user.nome);
+        System.out.println("Nome: " + user.nome); // Log the user's name
 
+        // Loop through the classes (turmas) associated with the user
         for (String turma : user.turmas) {
-            // Turma turma_obj = this.turma_dto.getTurma(turma);
-            // System.out.println(turma_obj.disciplina);
-            // System.out.println(turma_obj.id_turma);
-            // System.out.println(turma_obj.professor);
-            // System.out.println("Group ID = " + turma_obj.group);
-
-            // for (SalaHorario sala_horario : turma_obj.salas_horarios) {
-            //     System.out.println(sala_horario.sala);
-            //     System.out.println(sala_horario.horario);
-            // }
-
             try {
+                // Get the group ID associated with the current turma
                 int groupId = this.turma_dto.getGroupIDFromTurma(turma);
                 
+                // Check if the group ID is valid and add it to the set
                 if (groupId != -1) {
                     setOfGroups.add(groupId);
                 } else {
                     logger.error("Invalid group ID for turma: " + turma);
                 }
             } catch (Exception e) {
+                // Log any exceptions that occur while retrieving the group ID
                 logger.error("Exception occurred while getting group ID for turma: " + turma, e);
             }
 
             try {
+                // Get the groups related to the user's attendance in the current turma
                 Set<Integer> groups = this.turma_dto.getGroupsFromStudentAttendance(turma, dia_da_semana, hora, local);
-                if (!groups.isEmpty()) 
-                {
+                
+                // If groups were found, add them to the set and log the information
+                if (!groups.isEmpty()) {
                     setOfGroups.addAll(groups);
-                    this.logInfo(matricula, date.toString(), hora, groups);
+                    this.logInfo(matricula, date.toString(), hora, groups); // Log the attendance info
                 }
             } catch (Exception e) {
+                // Log any exceptions that occur while retrieving attendance groups
                 logger.error("Exception occurred while getting groups from student attendance in turma: " + turma, e);
             }
         }
         
         try {
+            // Get the group ID based on the user's location
             int groupId = this.getGroupIDFromLocation(local);
             
+            // Check if the group ID is valid and add it to the set
             if (groupId != -1) {
                 setOfGroups.add(groupId);
             } else {
                 logger.error("Invalid group ID for local: " + local);
             }
         } catch (Exception e) {
+            // Log any exceptions that occur while retrieving the group ID based on location
             logger.error("Exception occurred while getting group ID for turma: " + local, e);
         }
 
-        return setOfGroups;
-    }
+        // Log the final set of groups for debugging purposes
+        System.out.println(setOfGroups);
+        return setOfGroups; // Return the set of group IDs
+}
 
+    /**
+     * Logs information about a student's group assignment.
+     *
+     * @param matricula The student's matricula (registration number).
+     * @param data The date of the log entry.
+     * @param hora The time of the log entry.
+     * @param setOfGroups A set of group IDs the student is assigned to.
+     * 
+     * This method writes a log entry to a file specified by {@code logFilePath}.
+     * The log entry includes the date, time, matricula, and a comma-separated list of group IDs.
+     * If the set of groups is empty, "None" is logged instead.
+     * 
+     * @throws IOException If an I/O error occurs while writing to the log file.
+     */
     private void logInfo(String matricula, String data, String hora, Set<Integer> setOfGroups) 
     {
         try (PrintWriter writer = new PrintWriter(new FileWriter(this.logFilePath, true))) 
@@ -217,16 +301,11 @@ public class MyGroupDefiner implements GroupSelection {
         }
     }
 
-    /**
-     * 
-     */
+
     public String kafkaConsumerPrefix() {
         return "gd.one.consumer";
     }
 
-    /**
-     * 
-     */
     public String kafkaProducerPrefix() {
         return "gd.one.producer";
     }

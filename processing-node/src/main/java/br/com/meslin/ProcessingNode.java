@@ -307,7 +307,18 @@ public class ProcessingNode extends ModelApplication{
         }
     }
 
-    // Method to read the log file and count group occurrences
+    /**
+     * Counts the time each user is in different classes based on log data.
+     * 
+     * This method reads a log file specified by the constant GROUPS_LOG_FILE_PATH,
+     * where each line contains a date, time, user matricula, and a list of group IDs.
+     * It processes this data to count the number of times a user attends each group
+     * on a given date.
+     * 
+     * @return A nested map where the first key is the user's matricula, the second key
+     *         is the date, and the third key is the group ID. The value is the count of
+     *         times the user attended that group on that date.
+     */
     public Map<String, Map<String, Map<String, Integer>>> countTimeInClass() {
         Map<String, Map<String, Map<String, Integer>>> userGroupCount = new HashMap<>();
 
@@ -354,45 +365,73 @@ public class ProcessingNode extends ModelApplication{
         return userGroupCount;
     }
 
-    // Method to log attendance based on group counts and class duration
+    /**
+     * Logs the attendance of users based on their group counts.
+     *
+     * @param userGroupCount A nested map where the first key is the user's matricula (ID), 
+     *                       the second key is the date, and the third key is the group ID 
+     *                       with the corresponding attendance count.
+     *                       
+     * This method writes the attendance information to a log file specified by 
+     * ATTENDANCE_LOG_FILE_PATH. For each user, it iterates through the dates and groups 
+     * to determine if the user was present or absent based on the attendance count. 
+     * A user is considered present if their attendance count is at least 80% of the 
+     * group's duration.
+     *
+     * The log entry format is: date, discipline group_id, matricula, status
+     * where status is either "Present" or "Absent".
+     *
+     * If an error occurs while retrieving the group information or writing to the log file, 
+     * an error message is printed to the standard error stream.
+     *
+     * @throws IOException If an I/O error occurs while writing to the log file.
+     */
     public void logAttendance(Map<String, Map<String, Map<String, Integer>>> userGroupCount) 
     {
-        // String currentDate = LocalDate.now(zoneId).toString();
-
-        try (PrintWriter writer = new PrintWriter(new FileWriter(ATTENDANCE_LOG_FILE_PATH, true))) 
+      // Try-with-resources to automatically close the PrintWriter
+      try (PrintWriter writer = new PrintWriter(new FileWriter(ATTENDANCE_LOG_FILE_PATH, true))) 
+      {  
+        // Iterate through each student ID in the userGroupCount map
+        for (String matricula : userGroupCount.keySet()) 
         {
-            for (String matricula : userGroupCount.keySet()) 
+            // Get the map for the specific student's attendance records
+            Map<String, Map<String, Integer>> dateMap = userGroupCount.get(matricula);
+            
+            // Iterate through each date associated with the student
+            for (String date : dateMap.keySet()) 
             {
-                Map<String, Map<String, Integer>> dateMap = userGroupCount.get(matricula);
+                // Get the map of group attendance counts for that date
+                Map<String, Integer> groupCounts = dateMap.get(date);
                 
-                for (String date : dateMap.keySet()) 
+                // Iterate through each group and its attendance count
+                for (Map.Entry<String, Integer> entry : groupCounts.entrySet()) 
                 {
-                    Map<String, Integer> groupCounts = dateMap.get(date);
+                    String groupId = entry.getKey(); // Get the group ID
+                    int count = entry.getValue(); // Get the attendance count
                     
-                    for (Map.Entry<String, Integer> entry : groupCounts.entrySet()) 
-                    {
-                        String groupId = entry.getKey();
-                        int count = entry.getValue();
-                        
-                        try
-                        {
-                            Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
-                            int duration = turma.duracao * 60; // Assume duration is in minutes
+                    try {
+                        // Retrieve the Turma object based on the group ID
+                        Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
+                        int duration = turma.duracao * 60; // Assume duration is in minutes
 
-                            // Check if count is at least 80% of the duration
-                            if (count >= 0.8 * duration) {
-                                writer.println(date + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Present," + count);
-                            } else {
-                                writer.println(date + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Absent," + count);
-                            }
-                        } catch (Exception e) {
-                            System.err.println("Error getting turma by attending group: " + e.getMessage());
+                        // Check if the attendance count is at least 80% of the class duration
+                        if (count >= 0.8 * duration) {
+                            // Log as Present if attendance is sufficient
+                            writer.println(date + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Present");
+                        } else {
+                            // Log as Absent if attendance is insufficient
+                            writer.println(date + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",Absent");
                         }
-                        
+                    } catch (Exception e) {
+                        // Log an error if there is an issue retrieving the Turma
+                        System.err.println("Error getting turma by attending group: " + e.getMessage());
                     }
                 }
             }
-        } catch (IOException e) {
+        }
+        } catch (IOException e) 
+        {
+            // Log an error if there is an issue writing to the attendance log
             System.err.println("Error writing to attendance log: " + e.getMessage());
         }
     }
