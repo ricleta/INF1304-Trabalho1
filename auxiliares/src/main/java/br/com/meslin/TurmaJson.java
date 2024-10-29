@@ -134,7 +134,6 @@ public class TurmaJson {
                 }
             }
         }
-
         return groups;
     }
 
