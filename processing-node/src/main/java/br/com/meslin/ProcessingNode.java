@@ -101,11 +101,6 @@ public class ProcessingNode extends ModelApplication{
         while(!fim) {
             this.start_scheduling();
             this.logAttendance(this.countTimeInClass());
-            // System.out.print("Message to (G)roup or (I)ndividual (P)rocessing Node (Z to end)? ");
-            // String linha = keyboard.nextLine().trim().toUpperCase();
-            // System.out.printf("Your option was %s.", linha);
-            // if(optionsMap.containsKey(linha)) optionsMap.get(linha).accept(keyboard);
-            // else System.out.printf("Invalid option %s.\n", linha);
             
             try{
                 Thread.sleep(60000);
@@ -150,9 +145,6 @@ public class ProcessingNode extends ModelApplication{
     
         int dayOfWeek = currentDate.getDayOfWeek().getValue();
     
-        // System.out.println("Date: " + currentDate);
-        // System.out.println("Time: " + currentTime);
-    
         for (SalaHorario salaHorario : turma.salas_horarios) {
             try {
                 int scheduledDay = salaHorario.getDayOfWeek();
@@ -161,10 +153,6 @@ public class ProcessingNode extends ModelApplication{
                 // since we already subtracted 10 minutes from scheduledStartTime, 
                 // we only need to add the hours to get 10 min before the end time
                 LocalTime scheduledEndTime = scheduledStartTime.plusHours((turma.duracao));
-
-                // System.out.println("turma: " + turma.id_turma);
-                // System.out.println("Scheduled day: " + scheduledDay + " | Current day: " + dayOfWeek);
-                // System.out.println("Scheduled time: " + scheduledStartTime + " | Current time: " + currentTime);
                 
                 if (scheduledDay == dayOfWeek) 
                 {
@@ -215,15 +203,12 @@ public class ProcessingNode extends ModelApplication{
             for (String matricula : userGroupCount.keySet()) 
             {
                 Map<String, Map<String, Integer>> dateMap = userGroupCount.get(matricula);
-                System.out.println(classDate);
-                System.out.println(dateMap);
                 Map<String, Integer> groupCounts = dateMap.get(classDate);
                 
                 for (Map.Entry<String, Integer> entry : groupCounts.entrySet()) 
                 {
                     String groupId = entry.getKey();
                     int count = entry.getValue();
-                    System.out.println(groupId);
                     try
                     {
                         Turma turma = turma_dto.getTurma(Integer.parseInt(groupId));
@@ -232,13 +217,9 @@ public class ProcessingNode extends ModelApplication{
 
                             // Check if count is at least 80% of the duration
                             if (count >= threshold * duration) {
-                                System.out.println("PRESENTE");
                                 writer.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",PRESENTE");
                             } else {
-                                System.out.println("FALTA");
                                 writer.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",FALTA");
-                                System.out.println(classDate + "," + turma.disciplina + " " + turma.id_turma + "," + matricula + ",FALTA");
-                                writer.println("FALTA");
                             }
                         }
                     } catch (Exception e) {

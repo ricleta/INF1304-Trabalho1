@@ -179,8 +179,6 @@ public class MyGroupDefiner implements GroupSelection {
 
             try {
                 Set<Integer> groups = this.turma_dto.getGroupsFromStudentAttendance(turma, dia_da_semana, hora, local);
-                System.out.println(turma);
-                System.out.println("processando attendance");
                 if (!groups.isEmpty()) 
                 {
                     setOfGroups.addAll(groups);
@@ -203,13 +201,11 @@ public class MyGroupDefiner implements GroupSelection {
             logger.error("Exception occurred while getting group ID for turma: " + local, e);
         }
 
-        System.out.println(setOfGroups);
         return setOfGroups;
     }
 
     private void logInfo(String matricula, String data, String hora, Set<Integer> setOfGroups) 
     {
-        System.out.println(matricula);
         try (PrintWriter writer = new PrintWriter(new FileWriter(this.logFilePath, true))) 
         {   
             // Convert setOfGroups to a comma-separated string

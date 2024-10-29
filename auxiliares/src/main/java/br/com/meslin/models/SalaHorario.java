@@ -21,8 +21,6 @@ public class SalaHorario {
         this.diaDaSemana = this.getDiaDaSemana();
         this.hora_comeco = LocalTime.parse(this.getTimeString(), DateTimeFormatter.ofPattern("HH:mm"));
         this.hora_fim = hora_comeco.plusHours(duracao);
-        System.out.print(this.hora_comeco);
-        System.out.print(this.hora_fim);
     }
 
     public int getDayOfWeek() {

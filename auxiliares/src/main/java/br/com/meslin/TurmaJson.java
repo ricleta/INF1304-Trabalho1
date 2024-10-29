@@ -116,26 +116,22 @@ public class TurmaJson {
 
     public Set<Integer> getGroupsFromStudentAttendance(String nome_turma, int dayOfWeek, String hour, String location)
     {
-        System.out.print("dayOfWeek: ");
-        System.out.println(dayOfWeek);
-        System.out.print("hour: ");
-        System.out.println(hour);
         Set<Integer> groups = new HashSet<Integer>();
         Turma turma = getTurma(nome_turma);
         LocalTime currentTime = LocalTime.parse(hour, DateTimeFormatter.ofPattern("HH:mm")).withSecond(0).withNano(0);
 
         for (SalaHorario salaHorario : turma.salas_horarios) 
         {
-            System.out.println("Checking " + salaHorario.sala + " " + salaHorario.horario);
+            //println("Checking " + salaHorario.sala + " " + salaHorario.horario);
             if (salaHorario.getDayOfWeek() == dayOfWeek) 
             {
-                System.out.println("Day of week matches | Is class time = " + salaHorario.isClassTime(currentTime));
+                //System.out.println("Day of week matches | Is class time = " + salaHorario.isClassTime(currentTime));
                 if (salaHorario.isClassTime(currentTime)) 
                 {
-                    System.out.println(turma.disciplina + "is in class");
+                    //System.out.println(turma.disciplina + "is in class");
                     if (salaHorario.sala.equals(location)) 
                     {
-                        System.out.println("Student is in class");
+                        //System.out.println("Student is in class");
                         groups.add(turma.group_attending);
                     } else {
                         groups.add(turma.group_absent);
@@ -143,7 +139,6 @@ public class TurmaJson {
                 }
             }
         }
-        System.out.println(groups);
         return groups;
     }
 
